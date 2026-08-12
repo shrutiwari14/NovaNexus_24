@@ -3,6 +3,12 @@ let websocket = null;
 let recognition = null;
 let activeLectureId = null;
 
+// ========== WHITEBOARD OCR STATE ==========
+let whiteboardSessions = [];
+let activeWhiteboardIndex = null;
+let selectedImageBase64 = null;
+let selectedImageTitle = "Whiteboard Diagram Snapshot";
+
 function switchTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
@@ -157,4 +163,201 @@ async function sendChatMessage() {
 
     chatHistory.innerHTML += `<p><strong>AI:</strong> ${data.answer}</p>`;
     chatHistory.scrollTop = chatHistory.scrollHeight;
+}
+
+// ========== 🎨 WHITEBOARD & DIAGRAM OCR FUNCTIONS ==========
+
+// Generate a sample SVG diagram (Physics Double-Slit Experiment)
+function generateSampleDiagram() {
+    const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="350" viewBox="0 0 600 350" fill="none">
+      <rect width="600" height="350" fill="#0f172a" rx="16"/>
+      <rect x="20" y="20" width="560" height="310" stroke="#334155" stroke-width="2" rx="12" fill="#1e293b"/>
+      <text x="40" y="50" fill="#38bdf8" font-family="sans-serif" font-size="18" font-weight="bold">Double Slit Wave Interference (Physics 201)</text>
+      <!-- Slit barrier -->
+      <line x1="180" y1="60" x2="180" y2="140" stroke="#94a3b8" stroke-width="6"/>
+      <line x1="180" y1="170" x2="180" y2="230" stroke="#94a3b8" stroke-width="6"/>
+      <line x1="180" y1="260" x2="180" y2="310" stroke="#94a3b8" stroke-width="6"/>
+      <text x="185" y="155" fill="#f43f5e" font-family="sans-serif" font-size="14">S1</text>
+      <text x="185" y="248" fill="#f43f5e" font-family="sans-serif" font-size="14">S2</text>
+      <!-- Waves -->
+      <path d="M 60 180 Q 120 120 180 155" stroke="#818cf8" stroke-width="2" fill="none"/>
+      <path d="M 60 180 Q 120 240 180 245" stroke="#818cf8" stroke-width="2" fill="none"/>
+      <path d="M 180 155 Q 350 100 500 80" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4" fill="none"/>
+      <path d="M 180 245 Q 350 200 500 80" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4" fill="none"/>
+      <!-- Screen -->
+      <line x1="500" y1="60" x2="500" y2="310" stroke="#f1f5f9" stroke-width="4"/>
+      <text x="515" y="85" fill="#facc15" font-family="sans-serif" font-size="14">Bright Fringe (Maxima)</text>
+      <text x="515" y="180" fill="#64748b" font-family="sans-serif" font-size="14">Dark Fringe (Minima)</text>
+      <!-- Math Formulas -->
+      <text x="40" y="300" fill="#34d399" font-family="monospace" font-size="14">d * sin(theta) = m * lambda | lambda = h / p</text>
+    </svg>`;
+    return 'data:image/svg+xml;base64,' + btoa(svgContent);
+}
+
+// Handle file upload from input
+function handleOcrFileUpload(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    selectedImageTitle = file.name.replace(/\.[^/.]+$/, '');
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+        selectedImageBase64 = reader.result;
+        updateOcrPreview();
+    };
+    reader.readAsDataURL(file);
+}
+
+// Load preset diagram sample
+function loadPresetDiagram() {
+    selectedImageBase64 = generateSampleDiagram();
+    selectedImageTitle = "Physics Wave Interference Diagram";
+    updateOcrPreview();
+}
+
+// Update the preview UI
+function updateOcrPreview() {
+    const previewContainer = document.getElementById("ocr-preview-container");
+    const emptyState = document.getElementById("ocr-empty-state");
+    const previewImg = document.getElementById("ocr-preview-img");
+
+    if (selectedImageBase64) {
+        previewImg.src = selectedImageBase64;
+        previewContainer.classList.remove("hidden");
+        emptyState.style.display = "none";
+    } else {
+        previewContainer.classList.add("hidden");
+        emptyState.style.display = "flex";
+    }
+}
+
+// Handle analyze image button
+async function handleAnalyzeImage() {
+    if (!selectedImageBase64) return alert("Please select an image first.");
+
+    const analyzeBtn = document.getElementById("analyze-btn");
+    analyzeBtn.disabled = true;
+    analyzeBtn.textContent = "⏳ Analyzing...";
+
+    try {
+        const res = await fetch(`${API_BASE}/ocr-analyze`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                imageBase64: selectedImageBase64,
+                mimeType: selectedImageBase64.startsWith("data:image/svg") ? "image/svg+xml" : "image/jpeg",
+                targetLanguageName: "English",
+                title: selectedImageTitle,
+            }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            const newAnalysis = {
+                id: `wb-${Date.now()}`,
+                title: data.title || selectedImageTitle,
+                imageUrl: selectedImageBase64,
+                summary: data.summary || "Whiteboard diagram analyzed.",
+                translatedSummary: data.translatedSummary || "",
+                extractedText: data.extractedText || "OCR Text extracted.",
+                diagramSteps: data.diagramSteps || [],
+                formulas: data.formulas || [],
+                keyTakeaways: data.keyTakeaways || [],
+                translatedTakeaways: data.translatedTakeaways || [],
+                createdAt: new Date().toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                }),
+            };
+
+            whiteboardSessions.unshift(newAnalysis);
+            activeWhiteboardIndex = 0;
+            updateWhiteboardUI();
+        } else {
+            alert(data.error || "Failed to analyze whiteboard image");
+        }
+    } catch (e) {
+        console.error("Whiteboard analysis failed:", e);
+        alert("Error analyzing whiteboard image. Please try again.");
+    } finally {
+        analyzeBtn.disabled = false;
+        analyzeBtn.textContent = "✨ Run AI Diagram Analysis & OCR";
+    }
+}
+
+// Select a whiteboard from the list
+function selectWhiteboard(index) {
+    activeWhiteboardIndex = index;
+    updateWhiteboardUI();
+}
+
+// Copy OCR text to clipboard
+function copyOcrText() {
+    const extractedText = document.getElementById("ocr-extracted-text").innerText;
+    navigator.clipboard.writeText(extractedText).then(() => {
+        const copyBtn = document.getElementById("copy-ocr-btn");
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = "✅ Copied!";
+        copyBtn.classList.add("copied");
+        setTimeout(() => {
+            copyBtn.textContent = originalText;
+            copyBtn.classList.remove("copied");
+        }, 2000);
+    }).catch(err => console.error("Failed to copy:", err));
+}
+
+// Update all whiteboard UI sections
+function updateWhiteboardUI() {
+    if (whiteboardSessions.length === 0) {
+        document.getElementById("ocr-results-section").classList.add("hidden");
+        return;
+    }
+
+    document.getElementById("ocr-results-section").classList.remove("hidden");
+
+    // Update whiteboard list
+    const listContainer = document.getElementById("whiteboard-list");
+    listContainer.innerHTML = "";
+    document.getElementById("wb-count").innerText = whiteboardSessions.length;
+
+    whiteboardSessions.forEach((wb, idx) => {
+        const item = document.createElement("div");
+        item.className = `wb-item ${idx === activeWhiteboardIndex ? "active" : ""}`;
+        item.onclick = () => selectWhiteboard(idx);
+        item.innerHTML = `
+            <div class="wb-item-title">${wb.title}</div>
+            <div class="wb-item-time">${wb.createdAt}</div>
+            <div class="wb-item-summary">${wb.summary}</div>
+        `;
+        listContainer.appendChild(item);
+    });
+
+    // Update active whiteboard details
+    const activeWB = whiteboardSessions[activeWhiteboardIndex];
+    if (activeWB) {
+        document.getElementById("summary-text").innerText = activeWB.summary;
+        document.getElementById("translated-summary-text").innerText = activeWB.translatedSummary || activeWB.summary;
+        document.getElementById("ocr-extracted-text").innerText = activeWB.extractedText;
+
+        // Update diagram steps
+        const stepsContainer = document.getElementById("diagram-steps-container");
+        stepsContainer.innerHTML = "";
+
+        if (activeWB.diagramSteps && activeWB.diagramSteps.length > 0) {
+            activeWB.diagramSteps.forEach((step) => {
+                const stepEl = document.createElement("div");
+                stepEl.className = "step-item";
+                stepEl.innerHTML = `
+                    <div class="step-number">${step.stepNumber}</div>
+                    <div class="step-content">
+                        <div class="step-title">${step.title}</div>
+                        <div class="step-explanation">${step.explanation}</div>
+                    </div>
+                `;
+                stepsContainer.appendChild(stepEl);
+            });
+        }
+    }
 }

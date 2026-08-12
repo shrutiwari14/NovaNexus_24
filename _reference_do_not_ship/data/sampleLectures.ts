@@ -1,0 +1,361 @@
+import { LectureSession, SUPPORTED_LANGUAGES } from '../types';
+
+export const SAMPLE_LECTURES: LectureSession[] = [
+  {
+    id: 'phys-201-quantum',
+    title: 'Physics 201: Wave-Particle Duality & Double-Slit Experiment',
+    subject: 'Physics & Quantum Mechanics',
+    professorName: 'Prof. Marcus Vance',
+    date: 'August 12, 2026',
+    targetLanguage: SUPPORTED_LANGUAGES[0], // Hindi default
+    transcripts: [
+      {
+        id: 't-1',
+        timestamp: '00:12',
+        text: 'Good morning everyone. Today we delve into wave-particle duality and Young’s famous double-slit experiment.',
+        translatedText: 'आप सभी को सुप्रभात। आज हम तरंग-कण द्वैतता और यंग के प्रसिद्ध द्वि-स्लिट प्रयोग का अध्ययन करेंगे।',
+        speaker: 'Professor',
+      },
+      {
+        id: 't-2',
+        timestamp: '01:05',
+        text: 'When we fire single photons through two narrow slits, we don’t get two solid bands on the detector screen. Instead, we observe an interference pattern of light and dark fringes.',
+        translatedText: 'जब हम दो संकीर्ण स्लिट्स के माध्यम से एकल फ़ोटॉन छोड़ते हैं, तो हमें डिटेक्टर स्क्रीन पर दो ठोस पट्टियां नहीं मिलती हैं। इसके बजाय, हम प्रकाश और अंधेरे के हस्तक्षेप पैटर्न को देखते हैं।',
+        speaker: 'Professor',
+      },
+      {
+        id: 't-3',
+        timestamp: '02:40',
+        text: 'This leads us directly to Louis de Broglie’s matter wave hypothesis, given by lambda equals Planck’s constant divided by momentum.',
+        translatedText: 'यह हमें सीधे लुई डी ब्रोगली की पदार्थ तरंग परिकल्पना की ओर ले जाता है, जिसे लैम्ब्डा बराबर प्लांक नियतांक बटा संवेग (λ = h / p) द्वारा दिया जाता है।',
+        speaker: 'Professor',
+      },
+      {
+        id: 't-4',
+        timestamp: '04:15',
+        text: 'Wait professor, does the interference pattern disappear if we place a detector at one of the slits to observe which path the photon actually took?',
+        translatedText: 'प्रतीक्षा करें प्रोफेसर, यदि हम यह देखने के लिए कि फ़ोटॉन वास्तव में कौन सा मार्ग लेता है, एक स्लिट पर एक डिटेक्टर लगाते हैं, तो क्या हस्तक्षेप पैटर्न गायब हो जाता है?',
+        speaker: 'Student',
+      },
+      {
+        id: 't-5',
+        timestamp: '04:45',
+        text: 'Excellent question! Yes, the act of measurement collapses the wave function psi, causing the system to behave strictly like classical particles.',
+        translatedText: 'उत्कृष्ट प्रश्न! हाँ, माप का कार्य तरंग फ़ंक्शन साई (Ψ) को ध्वस्त कर देता है, जिससे प्रणाली क्लासिकल कणों की तरह व्यवहार करने लगती है।',
+        speaker: 'Professor',
+      },
+    ],
+    summary: {
+      overview:
+        'This lecture explores the fundamental quantum mechanical principle of Wave-Particle Duality. Through Young’s Double-Slit Experiment, it demonstrates how particles like electrons and photons exhibit both wave-like interference and particle-like localization upon measurement.',
+      translatedOverview:
+        'यह व्याख्यान तरंग-कण द्वैतता के मौलिक क्वांटम यांत्रिक सिद्धांत की पड़ताल करता है। यंग के डबल-स्लिट प्रयोग के माध्यम से, यह दर्शाता है कि कैसे इलेक्ट्रॉन और फ़ोटॉन जैसे कण माप पर तरंग जैसी हस्तक्षेप और कण जैसी स्थिति दोनों का प्रदर्शन करते हैं।',
+      keyConcepts: [
+        {
+          id: 'kc-1',
+          title: 'Wave-Particle Duality',
+          description: 'The concept that light and matter exhibit both wave-like and particle-like properties depending on the experimental setup.',
+          translatedTitle: 'तरंग-कण द्वैतता',
+          translatedDescription: 'यह अवधारणा कि प्रकाश और पदार्थ प्रयोगात्मक सेटअप के आधार पर तरंग जैसी और कण जैसी दोनों विशेषताओं को प्रदर्शित करते हैं।',
+          importance: 'Core',
+        },
+        {
+          id: 'kc-2',
+          title: 'De Broglie Wavelength',
+          description: 'Relates quantum wavelength lambda to momentum p: lambda = h / p.',
+          translatedTitle: 'डी ब्रोगली तरंगदैर्घ्य',
+          translatedDescription: 'क्वांटम तरंगदैर्ध्य लैम्ब्डा को संवेग p से जोड़ता है: λ = h / p।',
+          importance: 'High',
+        },
+        {
+          id: 'kc-3',
+          title: 'Wave Function Collapse',
+          description: 'When an observer measures quantum state psi, the superposition collapses into a definite eigenstate.',
+          translatedTitle: 'तरंग फ़ंक्शन ढहना (कोलैप्स)',
+          translatedDescription: 'जब कोई पर्यवेक्षक क्वांटम स्थिति का मापन करता है, तो सुपरपोज़िशन एक निश्चित स्थिति में ध्वस्त हो जाता है।',
+          importance: 'High',
+        },
+      ],
+      formulas: [
+        {
+          id: 'f-1',
+          latex: '\\lambda = \\frac{h}{p} = \\frac{h}{m v}',
+          name: 'De Broglie Relation',
+          explanation: 'Calculates the matter wavelength of a particle with mass m and velocity v.',
+          translatedExplanation: 'द्रव्यमान m और वेग v वाले कण के पदार्थ तरंगदैर्घ्य की गणना करता है।',
+        },
+        {
+          id: 'f-2',
+          latex: 'd \\sin\\theta = m \\lambda',
+          name: 'Double-Slit Constructive Interference',
+          explanation: 'Condition for bright fringe maxima on detector screen where d is slit separation and m is fringe order.',
+          translatedExplanation: 'डिटेक्टर स्क्रीन पर चमकीले बैंड के लिए स्थिति जहाँ d स्लिट अंतर और m ऑर्डर है।',
+        },
+      ],
+      glossary: [
+        {
+          term: 'Photon',
+          definition: 'A quantum bundle or packet of electromagnetic energy.',
+          translatedDefinition: 'विद्युत चुम्बकीय ऊर्जा का एक क्वांटम बंडल या पैकेट।',
+        },
+        {
+          term: 'Interference Fringe',
+          definition: 'Alternating bright and dark bands produced by overlapping waves.',
+          translatedDefinition: 'परस्पर व्याप्त तरंगों द्वारा निर्मित वैकल्पिक चमकीली और काली पट्टियाँ।',
+        },
+      ],
+    },
+    whiteboards: [
+      {
+        id: 'wb-1',
+        title: 'Double-Slit Interference & Wave Equation Diagram',
+        summary: 'Whiteboard sketch depicting light rays passing through slits S1 and S2, path difference delta, and bright fringe math.',
+        translatedSummary: 'व्हाइटबोर्ड स्केच जो स्लिट्स S1 और S2 से गुजरने वाली प्रकाश किरणों, पथ अंतर डेल्टा और ब्राइट फ्रिंज गणित को दर्शाता है।',
+        extractedText: 'Slit distance d, Screen distance L\nPath Difference: delta = d * sin(theta)\nMaxima: d * sin(theta) = m * lambda\nWave Function: Psi(x,t) = A * e^(i(kx - wt))',
+        diagramSteps: [
+          {
+            stepNumber: 1,
+            title: 'Coherent Light Source',
+            explanation: 'Monochromatic light wave emitted towards barriers.',
+            translatedExplanation: 'अवरोधों की ओर उत्सर्जित एकरंगी प्रकाश तरंग।',
+          },
+          {
+            stepNumber: 2,
+            title: 'Slit Separation (d)',
+            explanation: 'Wavefront splits at S1 and S2 creating two coherent secondary sources.',
+            translatedExplanation: 'तरंगाग्र S1 और S2 पर विभाजित होकर दो सुसंगत द्वितीयक स्रोत बनाता है।',
+          },
+          {
+            stepNumber: 3,
+            title: 'Screen Interference (L)',
+            explanation: 'Superposition produces constructive (bright) and destructive (dark) interference fringes.',
+            translatedExplanation: 'सुपरपॉजीशन से रचनात्मक (चमकीला) और विनाशी (काला) हस्तक्षेप उत्पन्न होता है।',
+          },
+        ],
+        formulas: [
+          {
+            id: 'wf-1',
+            latex: '\\Delta y = \\frac{\\lambda L}{d}',
+            name: 'Fringe Width Formula',
+            explanation: 'Distance between consecutive bright or dark fringes on the screen.',
+            translatedExplanation: 'स्क्रीन पर लगातार चमकीली या काली पट्टियों के बीच की दूरी।',
+          },
+        ],
+        keyTakeaways: [
+          'Light shows wave properties when unobserved.',
+          'Fringe spacing increases directly with wavelength lambda and distance L.',
+          'Measurement converts wave distribution into particle impacts.',
+        ],
+        translatedTakeaways: [
+          'अदृश्य रहने पर प्रकाश तरंग गुण दिखाता है।',
+          'फ्रिंज स्पेसिंग तरंगदैर्घ्य और दूरी L के साथ सीधे बढ़ती है।',
+          'मापन तरंग वितरण को कण प्रभावों में बदल देता है।',
+        ],
+        createdAt: '10:15 AM',
+      },
+    ],
+    flashcards: [
+      {
+        id: 'fc-1',
+        frontQuestion: 'What does the de Broglie equation lambda = h / p quantify?',
+        backAnswer: 'It quantifies matter-wave duality by assigning a wavelength lambda to any moving particle with momentum p.',
+        translatedQuestion: 'डी ब्रोगली समीकरण λ = h / p क्या मापता है?',
+        translatedAnswer: 'यह संवेग p वाले किसी भी गतिमान कण को तरंगदैर्घ्य λ प्रदान करके पदार्थ-तरंग द्वैतता को मापता है।',
+        topic: 'Quantum Mechanics',
+        difficulty: 'Easy',
+      },
+      {
+        id: 'fc-2',
+        frontQuestion: 'What happens to the interference pattern when we measure which slit a photon passes through?',
+        backAnswer: 'The interference pattern disappears because observing the photon collapses its wave function, making it act like a classical particle.',
+        translatedQuestion: 'जब हम यह मापते हैं कि फ़ोटॉन किस स्लिट से होकर गुजरता है तो हस्तक्षेप पैटर्न का क्या होता है?',
+        translatedAnswer: 'हस्तक्षेप पैटर्न गायब हो जाता है क्योंकि फ़ोटॉन का अवलोकन उसके तरंग फ़ंक्शन को समाप्त कर देता है, जिससे वह क्लासिकल कण की तरह व्यवहार करता है।',
+        topic: 'Wave Function Collapse',
+        difficulty: 'Medium',
+      },
+      {
+        id: 'fc-3',
+        frontQuestion: 'How does fringe width change if slit separation d is reduced?',
+        backAnswer: 'Fringe width increases because Delta y is inversely proportional to slit distance d.',
+        translatedQuestion: 'यदि स्लिट रिक्ति d कम कर दी जाए तो फ्रिंज चौड़ाई कैसे बदलती है?',
+        translatedAnswer: 'फ्रिंज चौड़ाई बढ़ जाती है क्योंकि Δy स्लिट दूरी d के व्युत्क्रमानुपाती होता है।',
+        topic: 'Double Slit Optics',
+        difficulty: 'Hard',
+      },
+    ],
+    quiz: [
+      {
+        id: 'q-1',
+        question: 'Which equation expresses the de Broglie wavelength of an electron moving with velocity v?',
+        translatedQuestion: 'कौन सा समीकरण वेग v से गतिमान इलेक्ट्रॉन के डी ब्रोगली तरंगदैर्घ्य को व्यक्त करता है?',
+        options: ['lambda = h * m * v', 'lambda = h / (m * v)', 'lambda = m * v / h', 'lambda = h^2 / p'],
+        translatedOptions: ['λ = h * m * v', 'λ = h / (m * v)', 'λ = m * v / h', 'λ = h² / p'],
+        correctAnswerIndex: 1,
+        explanation: 'De Broglie wavelength is given by lambda = h / p where momentum p = m * v.',
+        translatedExplanation: 'डी ब्रोगली तरंगदैर्ध्य λ = h / p द्वारा दिया जाता है जहाँ संवेग p = m * v है।',
+        topic: 'Formula Application',
+      },
+      {
+        id: 'q-2',
+        question: 'What is the primary evidence of wave-particle duality demonstrated in the double-slit experiment?',
+        translatedQuestion: 'डबल-स्लिट प्रयोग में प्रदर्शित तरंग-कण द्वैतता का प्राथमिक प्रमाण क्या है?',
+        options: [
+          'Photons travelling faster than sound speed',
+          'Single particle emissions creating an interference pattern over time',
+          'Electrons turning permanently into heat energy',
+          'Complete reflection of light off glass slits',
+        ],
+        translatedOptions: [
+          'ध्वनि की गति से तेज़ यात्रा करने वाले फ़ोटॉन',
+          'समय के साथ हस्तक्षेप पैटर्न बनाने वाले एकल कण उत्सर्जन',
+          'इलेक्ट्रॉनों का स्थायी रूप से ऊष्मा ऊर्जा में परिवर्तित होना',
+          'कांच के स्लिट्स से प्रकाश का पूर्ण परावर्तन',
+        ],
+        correctAnswerIndex: 1,
+        explanation: 'Even when electrons/photons are emitted one by one, an interference pattern builds up on the screen over time.',
+        translatedExplanation: 'यहां तक कि जब इलेक्ट्रॉन/फ़ोटॉन एक-एक करके उत्सर्जित होते हैं, तब भी समय के साथ स्क्रीन पर हस्तक्षेप पैटर्न बनता है।',
+        topic: 'Conceptual Understanding',
+      },
+    ],
+    doubts: [
+      {
+        id: 'd-1',
+        sender: 'student',
+        text: 'प्रोफेसर, क्या यह नियम बड़े कणों जैसे सेब या फुटबॉल पर भी लागू होता है?',
+        translatedText: 'Professor, does this law also apply to large objects like apples or footballs?',
+        timestamp: '10:22 AM',
+      },
+      {
+        id: 'd-2',
+        sender: 'tutor',
+        text: 'हाँ! सैद्धांतिक रूप से डी ब्रोगली का नियम (λ = h / p) सेब और फ़ुटबॉल पर भी लागू होता है। हालाँकि, क्योंकि प्लांक स्थिरांक (h) अत्यंत छोटा (6.626 × 10⁻³⁴) है और फ़ुटबॉल का द्रव्यमान बड़ा है, तरंगदैर्घ्य इतना सूक्ष्म हो जाता है कि इसे मापा नहीं जा सकता!',
+        translatedText: 'Yes! Theoretically de Broglie law applies to macroscopic objects too. However, because Planck constant h is tiny and macroscopic mass is huge, the resulting wavelength is unnoticeably miniscule!',
+        timestamp: '10:23 AM',
+        references: {
+          transcriptSnippet: 'lambda equals Planck’s constant divided by momentum.',
+        },
+      },
+    ],
+  },
+  {
+    id: 'math-302-calculus',
+    title: 'Calculus III: Partial Derivatives & Gradient Vectors',
+    subject: 'Multivariable Mathematics',
+    professorName: 'Dr. Anita Sharma',
+    date: 'August 11, 2026',
+    targetLanguage: SUPPORTED_LANGUAGES[0],
+    transcripts: [
+      {
+        id: 'mt-1',
+        timestamp: '00:30',
+        text: 'Welcome back. Today we extend single-variable calculus to surfaces z = f(x, y).',
+        translatedText: 'वापसी पर स्वागत है। आज हम एकल-चर कलन को सतहों z = f(x, y) तक विस्तारित करते हैं।',
+        speaker: 'Professor',
+      },
+      {
+        id: 'mt-2',
+        timestamp: '01:50',
+        text: 'The partial derivative with respect to x measures the rate of change along the x-axis while holding y constant.',
+        translatedText: 'x के संबंध में आंशिक व्युत्पन्न y को स्थिर रखते हुए x-अक्ष के साथ परिवर्तन की दर को मापता है।',
+        speaker: 'Professor',
+      },
+      {
+        id: 'mt-3',
+        timestamp: '03:10',
+        text: 'The gradient vector grad f or nabla f points in the direction of steepest ascent on the 3D surface.',
+        translatedText: 'ग्रेडिएंट वेक्टर grad f या nabla f 3D सतह पर सबसे तेज चढ़ाई की दिशा में इंगित करता है।',
+        speaker: 'Professor',
+      },
+    ],
+    summary: {
+      overview: 'Focuses on 3D multivariable calculus, computing partial derivatives dz/dx and dz/dy, and interpreting gradient vectors in optimization.',
+      translatedOverview: '3D बहुचर कलन, आंशिक व्युत्पन्न dz/dx और dz/dy की गणना करने और अनुकूलन में ग्रेडिएंट वैक्टर की व्याख्या करने पर केंद्रित है।',
+      keyConcepts: [
+        {
+          id: 'mkc-1',
+          title: 'Gradient Vector (∇f)',
+          description: 'Vector composed of partial derivatives [df/dx, df/dy], indicating direction of maximum rate of increase.',
+          translatedTitle: 'ग्रेडिएंट वेक्टर (∇f)',
+          translatedDescription: 'आंशिक व्युत्पन्न [df/dx, df/dy] से बना वेक्टर, जो वृद्धि की अधिकतम दर की दिशा दर्शाता है।',
+          importance: 'Core',
+        },
+      ],
+      formulas: [
+        {
+          id: 'mf-1',
+          latex: '\\nabla f(x, y) = \\left\\langle \\frac{\\partial f}{\\partial x}, \\frac{\\partial f}{\\partial y} \\right\\rangle',
+          name: 'Gradient Vector Formula',
+          explanation: 'Gradient operator applied to a scalar function of two variables.',
+          translatedExplanation: 'दो चरों के एक अदिश फ़ंक्शन पर लागू ग्रेडिएंट ऑपरेटर।',
+        },
+      ],
+      glossary: [
+        {
+          term: 'Contour Line',
+          definition: 'A level curve where function f(x, y) remains constant.',
+          translatedDefinition: 'एक समोच्च रेखा जहाँ फ़ंक्शन f(x, y) स्थिर रहता है।',
+        },
+      ],
+    },
+    whiteboards: [
+      {
+        id: 'mwb-1',
+        title: '3D Surface & Contour Gradient Field',
+        summary: 'Graph showing paraboloid surface z = x^2 + y^2 and orthogonal gradient vectors on level curves.',
+        translatedSummary: 'पैराबोलॉइड सतह z = x^2 + y^2 और स्तर वक्रों पर लंबवत ग्रेडिएंट वैक्टर दिखाने वाला ग्राफ।',
+        extractedText: 'z = x^2 + y^2\nGradient: grad f = <2x, 2y>\nAt point (1,2): grad f = <2, 4>\nDirectional Derivative: D_u f = grad f . u',
+        diagramSteps: [
+          {
+            stepNumber: 1,
+            title: 'Level Curves',
+            explanation: 'Concentric circles x^2 + y^2 = k mapped onto 2D plane.',
+            translatedExplanation: '2D समतल पर मैप किए गए संकेंद्रित वृत्त x^2 + y^2 = k।',
+          },
+          {
+            stepNumber: 2,
+            title: 'Gradient Direction',
+            explanation: 'Gradient vector is perpendicular to contour line at every point.',
+            translatedExplanation: 'ग्रेडिएंट वेक्टर प्रत्येक बिंदु पर समोच्च रेखा के लंबवत होता है।',
+          },
+        ],
+        formulas: [
+          {
+            id: 'mwf-1',
+            latex: 'D_{\\mathbf{u}} f = \\nabla f \\cdot \\mathbf{u}',
+            name: 'Directional Derivative',
+            explanation: 'Rate of change in the direction of unit vector u.',
+            translatedExplanation: 'इकाई वेक्टर u की दिशा में परिवर्तन की दर।',
+          },
+        ],
+        keyTakeaways: ['Gradient points perpendicular to level curves.', 'Magnitude of gradient gives maximum rate of increase.'],
+        translatedTakeaways: ['ग्रेडिएंट समोच्च रेखाओं के लंबवत होता है।', 'ग्रेडिएंट का परिमाण वृद्धि की अधिकतम दर देता है।'],
+        createdAt: '02:00 PM',
+      },
+    ],
+    flashcards: [
+      {
+        id: 'mfc-1',
+        frontQuestion: 'What direction does the gradient vector grad f point towards?',
+        backAnswer: 'It points in the direction of the steepest ascent (maximum rate of function increase).',
+        translatedQuestion: 'ग्रेडिएंट वेक्टर grad f किस दिशा में इंगित करता है?',
+        translatedAnswer: 'यह सबसे तेज चढ़ाई की दिशा (फ़ंक्शन वृद्धि की अधिकतम दर) की ओर इशारा करता है।',
+        topic: 'Calculus',
+        difficulty: 'Easy',
+      },
+    ],
+    quiz: [
+      {
+        id: 'mq-1',
+        question: 'If f(x, y) = x^2 + y^2, what is the gradient vector at (1, 2)?',
+        translatedQuestion: 'यदि f(x, y) = x^2 + y^2 है, तो (1, 2) पर ग्रेडिएंट वेक्टर क्या है?',
+        options: ['<1, 2>', '<2, 4>', '<2, 2>', '<4, 2>'],
+        translatedOptions: ['<1, 2>', '<2, 4>', '<2, 2>', '<4, 2>'],
+        correctAnswerIndex: 1,
+        explanation: 'grad f = <2x, 2y>. Evaluating at (1, 2) gives <2(1), 2(2)> = <2, 4>.',
+        translatedExplanation: 'grad f = <2x, 2y>. (1, 2) पर मान रखने पर <2(1), 2(2)> = <2, 4> मिलता है।',
+        topic: 'Gradient Calculations',
+      },
+    ],
+    doubts: [],
+  },
+];

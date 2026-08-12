@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Smart Lecture Assistant</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <header class="app-header">
@@ -23,6 +23,13 @@
           onclick="switchTab('recorded')"
         >
           📁 Upload & Analyze
+        </button>
+        <button
+          id="nav-whiteboard"
+          class="nav-btn"
+          onclick="switchTab('whiteboard')"
+        >
+          🎨 Whiteboard OCR
         </button>
       </nav>
     </header>
@@ -119,8 +126,94 @@
           </div>
         </div>
       </section>
+
+      <!-- TAB 3: WHITEBOARD & DIAGRAM OCR -->
+      <section id="tab-whiteboard" class="tab-content">
+        <div class="card ocr-panel">
+          <h2>🎨 Whiteboard & Visual Diagram OCR Studio</h2>
+          <p class="subtitle">
+            Upload photos of professor's whiteboard, slides, or diagrams. AI extracts formulas, steps, and explanations.
+          </p>
+
+          <div class="ocr-header">
+            <button class="btn btn-secondary" id="load-preset-btn" onclick="loadPresetDiagram()">
+              📷 Load Preset Diagram Sample
+            </button>
+          </div>
+
+          <!-- Upload Zone & Preview -->
+          <div class="ocr-grid-2col">
+            <!-- File Upload Zone -->
+            <div class="upload-dropzone">
+              <div class="upload-icon">📤</div>
+              <p class="upload-text">Upload Whiteboard Photo or Slide</p>
+              <p class="upload-hint">Supports JPG, PNG, WEBP, or SVG</p>
+              <label class="btn btn-primary upload-btn">
+                Browse Image File
+                <input type="file" id="ocr-file-input" accept="image/*" onchange="handleOcrFileUpload(event)" />
+              </label>
+            </div>
+
+            <!-- Image Preview & Action -->
+            <div class="image-preview-box">
+              <div id="ocr-preview-container" class="preview-container hidden">
+                <img id="ocr-preview-img" class="preview-img" alt="Whiteboard Preview" />
+                <button class="btn btn-success analyze-btn" id="analyze-btn" onclick="handleAnalyzeImage()">
+                  ✨ Run AI Diagram Analysis & OCR
+                </button>
+              </div>
+              <div id="ocr-empty-state" class="empty-state">
+                <div class="empty-icon">📋</div>
+                <p>No image selected yet.</p>
+                <p class="text-hint">Upload an image or click "Load Preset Diagram Sample" to try OCR instantly!</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Analysis Results -->
+          <div id="ocr-results-section" class="ocr-results hidden">
+            <div class="ocr-grid-3col">
+              <!-- Whiteboards History List -->
+              <div class="whiteboard-list-box">
+                <h3>📚 Analyzed Whiteboards (<span id="wb-count">0</span>)</h3>
+                <div id="whiteboard-list" class="wb-list"></div>
+              </div>
+
+              <!-- Analysis Results (2 cols on right) -->
+              <div class="ocr-results-main">
+                <!-- Summary & Translated Summary -->
+                <div class="summary-grid">
+                  <div class="summary-box">
+                    <h4>📝 English Summary</h4>
+                    <p id="summary-text"></p>
+                  </div>
+                  <div class="summary-box translated">
+                    <h4>🌍 Translated Summary</h4>
+                    <p id="translated-summary-text"></p>
+                  </div>
+                </div>
+
+                <!-- Diagram Steps -->
+                <div class="diagram-steps-section">
+                  <h4>➡️ Sequential Diagram & Step Breakdown</h4>
+                  <div id="diagram-steps-container" class="steps-container"></div>
+                </div>
+
+                <!-- OCR Extracted Text -->
+                <div class="extracted-text-section">
+                  <div class="extracted-header">
+                    <h4>🔤 OCR Extracted Text & Equations</h4>
+                    <button class="btn-small" id="copy-ocr-btn" onclick="copyOcrText()">📋 Copy Text</button>
+                  </div>
+                  <pre id="ocr-extracted-text" class="ocr-text-box"></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
 
-    <script src="app.js"></script>
+    <script src="script.js"></script>
   </body>
 </html>

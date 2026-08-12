@@ -3,4 +3,5 @@ uvicorn[standard]
 python-dotenv
 pydantic
 python-multipart
+websockets
 openai-whisper
