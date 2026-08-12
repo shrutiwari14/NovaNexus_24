@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Lecture Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="app-header">
+        <h1>🎓 LectureAI Studio</h1>
+        <nav>
+            <button id="nav-live" class="nav-btn active" onclick="switchTab('live')">🔴 Live Recording</button>
+            <button id="nav-recorded" class="nav-btn" onclick="switchTab('recorded')">📁 Upload & Analyze</button>
+        </nav>
+    </header>
+
+    <main class="container">
+        <!-- TAB 1: LIVE LECTURE -->
+        <section id="tab-live" class="tab-content active">
+            <div class="card">
+                <h2>Live Lecture Stream</h2>
+                <div class="controls">
+                    <button id="btn-start" class="btn btn-success" onclick="startLiveSession()">Start Recording</button>
+                    <button id="btn-stop" class="btn btn-danger" onclick="stopLiveSession()" disabled>Stop Recording</button>
+                    <span id="status-badge" class="badge">Offline</span>
+                </div>
+                <div class="transcript-box" id="live-transcript-box">
+                    <p class="placeholder">Click "Start Recording" to begin live transcript capture...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: RECORDED LECTURE & AI SUITE -->
+        <section id="tab-recorded" class="tab-content">
+            <div class="grid-2col">
+                <div class="card">
+                    <h2>Upload Lecture Media</h2>
+                    <input type="file" id="media-file" accept="audio/*,video/*">
+                    <button class="btn btn-primary" onclick="uploadLecture()">Upload & Process</button>
+                    <div id="upload-status"></div>
+
+                    <hr>
+
+                    <h2>Lecture Transcript</h2>
+                    <div class="transcript-box" id="recorded-transcript-box">
+                        <p class="placeholder">Upload a file to view transcript...</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>AI Suite Features</h2>
+                    <div class="ai-actions">
+                        <button class="btn btn-secondary" onclick="generateSummary()">Generate Summary</button>
+                        <button class="btn btn-secondary" onclick="generateFlashcards()">Create Flashcards</button>
+                    </div>
+
+                    <!-- Summary Display -->
+                    <div id="summary-section" class="ai-box hidden">
+                        <h3>Summary</h3>
+                        <p id="summary-text"></p>
+                        <ul id="key-points-list"></ul>
+                    </div>
+
+                    <!-- Flashcards Display -->
+                    <div id="flashcard-section" class="ai-box hidden">
+                        <h3>Flashcards</h3>
+                        <div id="flashcards-container"></div>
+                    </div>
+
+                    <!-- Interactive Q&A Chat -->
+                    <div class="chat-section">
+                        <h3>Ask Lecture AI</h3>
+                        <div id="chat-history" class="chat-box"></div>
+                        <div class="chat-input-row">
+                            <input type="text" id="chat-input" placeholder="Ask something about this lecture...">
+                            <button class="btn btn-primary" onclick="sendChatMessage()">Ask</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
