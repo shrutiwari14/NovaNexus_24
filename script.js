@@ -1,7 +1,12 @@
 const API_BASE = "http://127.0.0.1:8000";
-let websocket = null;
-let recognition = null;
 let activeLectureId = null;
+
+// ========== LIVE CAPTURE & SPEECH STATE ==========
+let liveTranscriptEntries = [];
+let isMicListening = false;
+let selectedSpeakerRole = "professor";
+let liveSessionStartTime = null;
+let micInterval = null;
 
 // ========== WHITEBOARD OCR STATE ==========
 let whiteboardSessions = [];
@@ -21,63 +26,249 @@ function switchTab(tabName) {
     document.getElementById(`nav-${tabName}`).classList.add('active');
 }
 
-// --- 🎙️ LIVE TRANSCRIPTION VIA WEBSOCKET & WEB SPEECH API ---
-function startLiveSession() {
-    const transcriptBox = document.getElementById("live-transcript-box");
-    transcriptBox.innerHTML = "";
-    
-    // 1. Establish WebSocket Connection
-    websocket = new WebSocket(`ws://127.0.0.1:8000/ws/live-transcript`);
-    
-    websocket.onopen = () => {
-        document.getElementById("status-badge").innerText = "Live";
-        document.getElementById("status-badge").classList.add("recording");
-        document.getElementById("btn-start").disabled = true;
-        document.getElementById("btn-stop").disabled = false;
-    };
+// --- LIVE CAPTURE & SPEECH ---
 
-    websocket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        const p = document.createElement("p");
-        p.innerText = data.text;
-        transcriptBox.appendChild(p);
-        transcriptBox.scrollTop = transcriptBox.scrollHeight;
-    };
+const MOCK_LIVE_TRANSCRIPT = [
+    {
+        id: "entry-1",
+        role: "professor",
+        timestamp: "00:12",
+        text: "Good morning everyone. Today we delve into wave-particle duality and Young's famous double-slit experiment.",
+        translatedText: "सुप्रभात सभी को। आज हम तरंग-कण द्वैतता और यंग के प्रसिद्ध द्वि-स्लिट प्रयोग में गहराई से जाएंगे।",
+        langCode: "IN",
+    },
+    {
+        id: "entry-2",
+        role: "professor",
+        timestamp: "00:45",
+        text: "When we fire single photons through two narrow slits, we don't get two solid bands on the detector screen. Instead, we observe an interference pattern.",
+        translatedText: "जब हम दो संकीर्ण स्लिटों से एकल फोटॉन फेंकते हैं, तो हमें डिटेक्टर स्क्रीन पर दो ठोस पट्टियाँ नहीं मिलतीं। इसके बजाय, हम एक व्यतिकरण पैटर्न देखते हैं।",
+        langCode: "IN",
+    },
+    {
+        id: "entry-3",
+        role: "professor",
+        timestamp: "01:18",
+        text: "This is the fundamental mystery of quantum mechanics. A particle seems to pass through both slits simultaneously, interfering with itself.",
+        translatedText: "यह क्वांटम यांत्रिकी का मूल रहस्य है। एक कण ऐसा लगता है जैसे वह एक साथ दोनों स्लिटों से गुजरता है, स्वयं के साथ व्यतिकरण करता है।",
+        langCode: "IN",
+    },
+    {
+        id: "entry-4",
+        role: "student",
+        timestamp: "01:52",
+        text: "Professor, does this mean the photon is physically in two places at once before we measure it?",
+        translatedText: "प्रोफेसर, क्या इसका मतलब है कि फोटॉन मापने से पहले एक साथ दो स्थानों पर भौतिक रूप से मौजूद है?",
+        langCode: "IN",
+    },
+    {
+        id: "entry-5",
+        role: "professor",
+        timestamp: "02:15",
+        text: "That's the million-dollar question. Before measurement, it exists as a probability wave described by the wave function Psi.",
+        translatedText: "यह वह करोड़ों डॉलर का प्रश्न है। मापने से पहले, यह तरंग फलन Psi द्वारा वर्णित एक संभाव्यता तरंग के रूप में मौजूद है।",
+        langCode: "IN",
+    },
+];
 
-    // 2. Initialize Speech Recognition
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-        alert("Browser does not support Web Speech API. Use Chrome or Edge.");
+function formatLiveTimestamp() {
+    if (!liveSessionStartTime) return "00:00";
+    const elapsed = Math.floor((Date.now() - liveSessionStartTime) / 1000);
+    const mins = Math.floor(elapsed / 60).toString().padStart(2, "0");
+    const secs = (elapsed % 60).toString().padStart(2, "0");
+    return `${mins}:${secs}`;
+}
+
+function renderTranscriptFeed() {
+    const feed = document.getElementById("live-transcript-feed");
+    const countBadge = document.getElementById("transcript-count-badge");
+    if (!feed) return;
+
+    countBadge.textContent = `${liveTranscriptEntries.length} item${liveTranscriptEntries.length !== 1 ? "s" : ""}`;
+
+    feed.innerHTML = liveTranscriptEntries.map((entry) => {
+        const roleLabel = entry.role === "student" ? "Student" : "Professor";
+        return `
+            <div class="transcript-entry" data-id="${entry.id}">
+                <div class="transcript-entry-header">
+                    <div class="transcript-entry-meta">
+                        <span class="role-badge ${entry.role}">${roleLabel}</span>
+                        <span class="transcript-timestamp">🕐 ${entry.timestamp}</span>
+                    </div>
+                    <div class="transcript-entry-actions">
+                        <button class="transcript-action-btn" title="Play audio" onclick="playTranscriptEntry('${entry.id}')">🔊</button>
+                        <button class="transcript-action-btn" title="Copy text" onclick="copyTranscriptEntry('${entry.id}', this)">📋</button>
+                    </div>
+                </div>
+                <p class="transcript-original">${escapeHtml(entry.text)}</p>
+                <p class="transcript-translated">
+                    <span class="transcript-lang-tag">${entry.langCode || "IN"}</span>
+                    <span>${escapeHtml(entry.translatedText)}</span>
+                </p>
+            </div>
+        `;
+    }).join("");
+
+    feed.scrollTop = feed.scrollHeight;
+}
+
+function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+function playTranscriptEntry(entryId) {
+    const entry = liveTranscriptEntries.find((e) => e.id === entryId);
+    if (!entry) return;
+    if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(entry.text);
+        utterance.lang = "en-US";
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
+function copyTranscriptEntry(entryId, btn) {
+    const entry = liveTranscriptEntries.find((e) => e.id === entryId);
+    if (!entry) return;
+    const text = `${entry.text}\n\n${entry.translatedText}`;
+    navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = "✅";
+        btn.classList.add("copied");
+        setTimeout(() => {
+            btn.textContent = "📋";
+            btn.classList.remove("copied");
+        }, 2000);
+    });
+}
+
+function setSpeakerRole(role) {
+    selectedSpeakerRole = role;
+    document.getElementById("role-professor").classList.toggle("active", role === "professor");
+    document.getElementById("role-student").classList.toggle("active", role === "student");
+}
+
+function updateAddButtonState() {
+    const input = document.getElementById("manual-speech-input");
+    const btn = document.getElementById("btn-add-stream");
+    if (input && btn) {
+        btn.disabled = !input.value.trim();
+    }
+}
+
+async function toggleLiveMic() {
+    const btn = document.getElementById("btn-start-mic");
+
+    if (isMicListening) {
+        isMicListening = false;
+        if (micInterval) {
+            clearInterval(micInterval);
+            micInterval = null;
+        }
+        btn.classList.remove("listening");
+        btn.innerHTML = '<span class="btn-icon">🎤</span> Start Live Mic';
         return;
     }
 
-    recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
+    isMicListening = true;
+    liveSessionStartTime = Date.now();
+    btn.classList.add("listening");
+    btn.innerHTML = '<span class="btn-icon">⏹️</span> Stop Live Mic';
 
-    recognition.onresult = (event) => {
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-            if (event.results[i].isFinal) {
-                const text = event.results[i][0].transcript;
-                // Send final chunk through WebSocket
-                if (websocket && websocket.readyState === WebSocket.OPEN) {
-                    websocket.send(JSON.stringify({ text: text, is_final: true }));
-                }
-            }
+    try {
+        const res = await fetch(`${API_BASE}/transcribe`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "start", targetLanguage: "Hindi" }),
+        });
+        const data = await res.json();
+
+        if (data.entry) {
+            liveTranscriptEntries.push(data.entry);
+            renderTranscriptFeed();
         }
-    };
+    } catch (err) {
+        console.warn("Transcribe endpoint unavailable, using local mock:", err);
+        const mockEntry = {
+            id: `entry-${Date.now()}`,
+            role: "professor",
+            timestamp: formatLiveTimestamp(),
+            text: "Let us now consider the de Broglie wavelength, lambda equals h divided by p.",
+            translatedText: "अब हम de Broglie तरंगदैर्घ्य पर विचार करते हैं, lambda बराबर h भाग p।",
+            langCode: "IN",
+        };
+        liveTranscriptEntries.push(mockEntry);
+        renderTranscriptFeed();
+    }
 
-    recognition.start();
+    micInterval = setInterval(async () => {
+        if (!isMicListening) return;
+        try {
+            const res = await fetch(`${API_BASE}/transcribe`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "chunk", targetLanguage: "Hindi" }),
+            });
+            const data = await res.json();
+            if (data.entry) {
+                liveTranscriptEntries.push(data.entry);
+                renderTranscriptFeed();
+            }
+        } catch {
+            // Silently skip if backend unavailable during interval
+        }
+    }, 15000);
 }
 
-function stopLiveSession() {
-    if (recognition) recognition.stop();
-    if (websocket) websocket.close();
+async function addManualEntry() {
+    const input = document.getElementById("manual-speech-input");
+    const text = input.value.trim();
+    if (!text) return;
 
-    document.getElementById("status-badge").innerText = "Offline";
-    document.getElementById("status-badge").classList.remove("recording");
-    document.getElementById("btn-start").disabled = false;
-    document.getElementById("btn-stop").disabled = true;
+    const btn = document.getElementById("btn-add-stream");
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(`${API_BASE}/add-manual-entry`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                text,
+                role: selectedSpeakerRole,
+                targetLanguage: "Hindi",
+            }),
+        });
+        const data = await res.json();
+
+        if (data.entry) {
+            liveTranscriptEntries.push(data.entry);
+        }
+    } catch (err) {
+        console.warn("Manual entry endpoint unavailable, using local mock:", err);
+        liveTranscriptEntries.push({
+            id: `entry-${Date.now()}`,
+            role: selectedSpeakerRole,
+            timestamp: formatLiveTimestamp(),
+            text,
+            translatedText: `[Hindi translation pending] ${text}`,
+            langCode: "IN",
+        });
+    }
+
+    input.value = "";
+    renderTranscriptFeed();
+    updateAddButtonState();
+}
+
+function generateMultilingualDeck() {
+    alert("Generate Multilingual Deck will create flashcards from the live transcript. Wire this to your deck generator next!");
+}
+
+function initLiveCaptureTab() {
+    liveTranscriptEntries = [...MOCK_LIVE_TRANSCRIPT];
+    renderTranscriptFeed();
+    updateAddButtonState();
 }
 
 // --- 📁 FILE UPLOAD & RECORDED ANALYSIS ---
@@ -496,7 +687,8 @@ function askAiTutor(diagramId) {
     }
 }
 
-// Initialize with mock data on page load
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
+    initLiveCaptureTab();
     loadMockDiagramSuggestions();
 });

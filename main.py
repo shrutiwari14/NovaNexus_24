@@ -1,6 +1,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+import time
 
 import ai_engine
 import database
@@ -115,3 +116,94 @@ async def ocr_analyze(request: OcrAnalysisRequest):
     }
     
     return analysis
+
+
+# ========== LIVE CAPTURE & SPEECH ROUTES ==========
+
+class TranscribeRequest(BaseModel):
+    action: str = "start"
+    targetLanguage: str = "Hindi"
+
+
+class ManualEntryRequest(BaseModel):
+    text: str
+    role: str = "professor"
+    targetLanguage: str = "Hindi"
+
+
+MOCK_MIC_CHUNKS = [
+    {
+        "role": "professor",
+        "text": "The fringe spacing on the screen is given by delta-y equals lambda L over d.",
+        "translatedText": "स्क्रीन पर फ्रिंज स्पेसिंग delta-y बराबर lambda L भाग d द्वारा दी जाती है।",
+    },
+    {
+        "role": "professor",
+        "text": "Notice how increasing the slit separation d compresses the interference pattern.",
+        "translatedText": "ध्यान दें कि स्लिट separation d बढ़ाने से व्यतिकरण पैटर्न संकुचित हो जाता है।",
+    },
+    {
+        "role": "student",
+        "text": "So if we use electrons instead of photons, do we still see the same pattern?",
+        "translatedText": "तो अगर हम फोटॉन के बजाय इलेक्ट्रॉन का उपयोग करें, तो क्या हम अभी भी वही पैटर्न देखते हैं?",
+    },
+]
+
+_mic_chunk_index = 0
+
+
+def _make_transcript_entry(role: str, text: str, translated_text: str, timestamp: str = "00:00") -> dict:
+    return {
+        "id": f"entry-{int(time.time() * 1000)}",
+        "role": role,
+        "timestamp": timestamp,
+        "text": text,
+        "translatedText": translated_text,
+        "langCode": "IN",
+    }
+
+
+@app.post("/transcribe")
+async def transcribe_live(request: TranscribeRequest):
+    """
+    Mock live transcription endpoint.
+    Returns a sample transcript entry when mic is started or a new chunk arrives.
+    """
+    global _mic_chunk_index
+
+    if request.action == "start":
+        entry = _make_transcript_entry(
+            role="professor",
+            text="Listening... The wave function Psi describes the quantum state of our particle system.",
+            translated_text="सुन रहे हैं... तरंग फलन Psi हमारे कण प्रणाली की क्वांटम अवस्था का वर्णन करता है।",
+            timestamp="00:03",
+        )
+        return {"status": "listening", "entry": entry}
+
+    chunk = MOCK_MIC_CHUNKS[_mic_chunk_index % len(MOCK_MIC_CHUNKS)]
+    _mic_chunk_index += 1
+    entry = _make_transcript_entry(
+        role=chunk["role"],
+        text=chunk["text"],
+        translated_text=chunk["translatedText"],
+        timestamp="00:30",
+    )
+    return {"status": "chunk", "entry": entry}
+
+
+@app.post("/add-manual-entry")
+async def add_manual_entry(request: ManualEntryRequest):
+    """
+    Mock manual speech input endpoint.
+    Accepts typed professor/student remarks and returns a translated transcript entry.
+    """
+    role = request.role if request.role in ("professor", "student") else "professor"
+    mock_translation = f"[{request.targetLanguage}] {request.text}"
+
+    entry = _make_transcript_entry(
+        role=role,
+        text=request.text,
+        translated_text=mock_translation,
+        timestamp="00:00",
+    )
+    return {"status": "ok", "entry": entry}

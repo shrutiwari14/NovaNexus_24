@@ -45,32 +45,92 @@
     </header>
 
     <main class="container">
-      <!-- TAB 1: LIVE LECTURE -->
+      <!-- TAB 1: LIVE CAPTURE & SPEECH -->
       <section id="tab-live" class="tab-content active">
-        <div class="card">
-          <h2><span class="icon">🔴</span>Live Lecture Stream</h2>
-          <div class="controls">
-            <button
-              id="btn-start"
-              class="btn btn-success"
-              onclick="startLiveSession()"
-            >
-              Start Recording
-            </button>
-            <button
-              id="btn-stop"
-              class="btn btn-danger"
-              onclick="stopLiveSession()"
-              disabled
-            >
-              Stop Recording
-            </button>
-            <span id="status-badge" class="badge">Offline</span>
+        <!-- Top Header Card -->
+        <div class="card live-header-card">
+          <div class="live-header-top">
+            <div class="live-header-info">
+              <div class="live-breadcrumb">
+                <span class="subject-pill">Physics &amp; Quantum Mechanics</span>
+                <span class="breadcrumb-sep">|</span>
+                <span class="prof-name">Prof: Prof. Marcus Vance</span>
+              </div>
+              <h2 class="live-lecture-title">Physics 201: Wave-Particle Duality &amp; Double-Slit Experiment</h2>
+              <p class="live-subtitle">
+                Capturing professor's speech in real-time. Translating to
+                <span class="lang-highlight"><span class="lang-code">IN</span> Hindi</span>
+              </p>
+            </div>
+            <div class="live-header-actions">
+              <button id="btn-start-mic" class="btn btn-primary" onclick="toggleLiveMic()">
+                <span class="btn-icon">🎤</span> Start Live Mic
+              </button>
+              <button class="btn btn-amber" onclick="generateMultilingualDeck()">
+                <span class="btn-icon">✨</span> Generate Multilingual Deck
+              </button>
+            </div>
           </div>
-          <div class="transcript-box" id="live-transcript-box">
-            <p class="placeholder">
-              Click "Start Recording" to begin live transcript capture...
-            </p>
+        </div>
+
+        <!-- Two-Column Layout -->
+        <div class="live-grid">
+          <!-- Left: Transcript Feed -->
+          <div class="card live-transcript-card">
+            <div class="live-transcript-header">
+              <div class="live-transcript-title-row">
+                <span class="live-section-icon">🌐</span>
+                <h3>Live Classroom Transcript Feed</h3>
+                <span id="transcript-count-badge" class="item-count-badge">5 items</span>
+              </div>
+              <span class="target-lang-label">Target Language: <strong>Hindi</strong></span>
+            </div>
+            <div class="live-transcript-feed" id="live-transcript-feed"></div>
+          </div>
+
+          <!-- Right: Manual Speech Input -->
+          <div class="live-sidebar">
+            <div class="card manual-input-card">
+              <div class="manual-input-header">
+                <span class="live-section-icon">✈️</span>
+                <h3>Manual Speech Input</h3>
+              </div>
+              <p class="manual-input-desc">
+                Type or paste professor remarks, formulas, or student questions to add them to the live transcript stream.
+              </p>
+
+              <label class="field-label">Speaker Role</label>
+              <div class="speaker-role-toggle">
+                <button id="role-professor" class="role-btn active" onclick="setSpeakerRole('professor')">
+                  <span class="role-icon">👨‍🏫</span> Professor
+                </button>
+                <button id="role-student" class="role-btn" onclick="setSpeakerRole('student')">
+                  <span class="role-icon">🧑‍🎓</span> Student
+                </button>
+              </div>
+
+              <label class="field-label" for="manual-speech-input">Spoken Content / Speech</label>
+              <textarea
+                id="manual-speech-input"
+                rows="5"
+                placeholder="e.g. Next, let us write the wave equation Psi(x,t) = A * e^(i(kx - wt))..."
+                oninput="updateAddButtonState()"
+              ></textarea>
+
+              <button id="btn-add-stream" class="btn btn-primary btn-full" disabled onclick="addManualEntry()">
+                <span class="btn-icon">✈️</span> Add to Live Stream
+              </button>
+            </div>
+
+            <div class="card smart-tip-card">
+              <div class="smart-tip-header">
+                <span class="live-section-icon">📖</span>
+                <h4>Smart Classroom Tip</h4>
+              </div>
+              <p class="smart-tip-text">
+                Once you have captured lecture speech, click "Generate Multilingual Deck" to create flashcards and study notes in your target language automatically.
+              </p>
+            </div>
           </div>
         </div>
       </section>
