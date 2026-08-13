@@ -1,7 +1,9 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import time
+import os
+import tempfile
 
 import ai_engine
 import database
@@ -208,6 +210,142 @@ async def add_manual_entry(request: ManualEntryRequest):
         timestamp="00:00",
     )
     return {"status": "ok", "entry": entry}
+
+
+# ========== 📖 MULTILINGUAL STUDY DECK ROUTES ==========
+
+# ── /transcribe-audio ────────────────────────────────────────────────────────
+
+class TranscribeAudioResponse(BaseModel):
+    transcript: str
+
+
+@app.post("/transcribe-audio", response_model=TranscribeAudioResponse)
+async def transcribe_audio(file: UploadFile = File(...)):
+    """
+    Accept an uploaded audio/video file, persist it to a temp location, and
+    return a transcript.
+
+    Real path:  wire `transcriber.transcribe(path)` once Whisper is configured.
+    Fallback:   returns a realistic sample transcript so the UI flow is fully
+                exercisable without a Whisper installation.
+    """
+    # ── Save the upload to a real temp file (real file I/O, not skipped) ──
+    suffix = os.path.splitext(file.filename or "upload.mp3")[1] or ".mp3"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        contents = await file.read()
+        tmp.write(contents)
+        tmp_path = tmp.name
+
+    try:
+        # Real Whisper path – uncomment once transcriber.transcribe() is wired:
+        # transcript = transcriber.transcribe(tmp_path)
+        # if transcript:
+        #     return TranscribeAudioResponse(transcript=transcript)
+
+        # ── FALLBACK: sample transcript (clearly labelled) ─────────────────
+        transcript = (
+            "[SAMPLE TRANSCRIPT — replace with real Whisper output]\n\n"
+            "Professor: Good morning everyone. Today we continue with Chapter 4 — "
+            "Wave-Particle Duality and the Double-Slit Experiment.\n\n"
+            "The central question in quantum mechanics is: is light a wave or a particle? "
+            "The answer, as Young demonstrated in 1801, is that it behaves as both depending "
+            "on the experimental setup.\n\n"
+            "When we fire photons through two closely-spaced slits, we observe an interference "
+            "pattern on a detector screen — constructive and destructive fringes that can only "
+            "be explained by wave behaviour. The fringe spacing is given by Δy = λL / d, where "
+            "λ is the wavelength, L the screen distance, and d the slit separation.\n\n"
+            "Student: What happens if we only open one slit?\n\n"
+            "Professor: Excellent question. With a single slit open, we see a simple diffraction "
+            "pattern — no interference fringes. The two-slit interference vanishes because there "
+            "is only one wavefront.\n\n"
+            "Now, the de Broglie relation tells us that matter itself has a wavelength: λ = h/p. "
+            "This was confirmed experimentally with electrons by Davisson and Germer in 1927.\n\n"
+            f"[File received: {file.filename}, size: {len(contents)} bytes]"
+        )
+        return TranscribeAudioResponse(transcript=transcript)
+    finally:
+        # Clean up temp file
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+
+
+# ── /generate-summary ────────────────────────────────────────────────────────
+
+class SummaryRequest(BaseModel):
+    transcript: str
+
+
+class SummaryResponse(BaseModel):
+    summary: str
+    key_points: list[str]
+
+
+@app.post("/generate-summary", response_model=SummaryResponse)
+async def generate_summary_route(request: SummaryRequest):
+    """
+    Generate a concise summary and key bullet points from a transcript.
+    Delegates to ai_engine.generate_summary() — real AI or labelled mock.
+    """
+    if not request.transcript.strip():
+        raise HTTPException(status_code=400, detail="transcript must not be empty")
+    result = ai_engine.generate_summary(request.transcript)
+    return SummaryResponse(
+        summary=result["summary"],
+        key_points=result["key_points"],
+    )
+
+
+# ── /generate-flashcards ─────────────────────────────────────────────────────
+
+class FlashcardsRequest(BaseModel):
+    transcript: str
+
+
+class Flashcard(BaseModel):
+    question: str
+    answer: str
+
+
+class FlashcardsResponse(BaseModel):
+    flashcards: list[Flashcard]
+
+
+@app.post("/generate-flashcards", response_model=FlashcardsResponse)
+async def generate_flashcards_route(request: FlashcardsRequest):
+    """
+    Generate Q&A flashcards from a transcript.
+    Delegates to ai_engine.generate_flashcards() — real AI or labelled mock.
+    """
+    if not request.transcript.strip():
+        raise HTTPException(status_code=400, detail="transcript must not be empty")
+    cards = ai_engine.generate_flashcards(request.transcript)
+    return FlashcardsResponse(flashcards=[Flashcard(**c) for c in cards])
+
+
+# ── /ask-lecture ─────────────────────────────────────────────────────────────
+
+class AskLectureRequest(BaseModel):
+    question: str
+    transcript_context: str
+
+
+class AskLectureResponse(BaseModel):
+    answer: str
+
+
+@app.post("/ask-lecture", response_model=AskLectureResponse)
+async def ask_lecture_route(request: AskLectureRequest):
+    """
+    Answer a student's question grounded in the lecture transcript.
+    Delegates to ai_engine.ask_lecture() — real AI or labelled mock.
+    """
+    if not request.question.strip():
+        raise HTTPException(status_code=400, detail="question must not be empty")
+    answer = ai_engine.ask_lecture(request.question, request.transcript_context)
+    return AskLectureResponse(answer=answer)
 
 
 # ========== FEEDBACK LOOP / TEACHER INSIGHTS ==========

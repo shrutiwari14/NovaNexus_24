@@ -167,15 +167,18 @@
         <div class="grid-2col">
           <div class="card">
             <h2><span class="icon">📤</span>Upload Lecture Media</h2>
-            <input type="file" id="media-file" accept="audio/*,video/*" />
-            <button class="btn btn-primary" onclick="uploadLecture()">
-              Upload & Process
+            <div class="file-input-row">
+              <input type="file" id="media-file" accept="audio/*,video/*" onchange="handleFileSelect(event)" />
+              <span id="file-name-display" class="file-name-display">No file chosen</span>
+            </div>
+            <button id="btn-upload" class="btn btn-primary" onclick="uploadLecture()">
+              <span class="btn-icon">📤</span> Upload &amp; Process
             </button>
-            <div id="upload-status"></div>
+            <div id="upload-status" class="upload-status-msg"></div>
             
             <div class="upload-meta">
               <span class="file-support">MP3, WAV, MP4, M4A, OGG</span>
-              <span class="status-pill ready" id="upload-status-pill">Ready</span>
+              <span class="status-pill ready" id="upload-status-pill">READY</span>
             </div>
 
             <hr />
@@ -194,14 +197,14 @@
             <h2><span class="icon">✨</span>AI Suite Features</h2>
             <div class="ai-actions">
               <div class="ai-action-item">
-                <button class="btn btn-secondary" onclick="generateSummary()">
-                  Generate Summary
+                <button id="btn-summary" class="btn btn-secondary" onclick="generateSummary()" disabled>
+                  <span class="btn-icon">✨</span> Generate Summary
                 </button>
                 <p class="ai-action-desc">Condense the lecture into key points and insights</p>
               </div>
               <div class="ai-action-item">
-                <button class="btn btn-secondary" onclick="generateFlashcards()">
-                  Create Flashcards
+                <button id="btn-flashcards" class="btn btn-secondary" onclick="generateFlashcards()" disabled>
+                  <span class="btn-icon">🗂️</span> Create Flashcards
                 </button>
                 <p class="ai-action-desc">Auto-generate Q&A study cards for review</p>
               </div>
@@ -229,8 +232,9 @@
                   type="text"
                   id="chat-input"
                   placeholder="Ask something about this lecture..."
+                  onkeydown="handleChatKey(event)"
                 />
-                <button class="btn btn-primary" onclick="sendChatMessage()">
+                <button id="btn-ask" class="btn btn-primary" onclick="sendChatMessage()" disabled>
                   Ask
                 </button>
               </div>

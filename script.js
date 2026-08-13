@@ -272,92 +272,248 @@ function initLiveCaptureTab() {
 }
 
 // --- 📁 FILE UPLOAD & RECORDED ANALYSIS ---
-async function uploadLecture() {
-    const fileInput = document.getElementById("media-file");
-    if (!fileInput.files[0]) return alert("Please select a file first.");
 
-    const formData = new FormData();
-    formData.append("file", fileInput.files[0]);
+// Module-level transcript store for the Study Deck tab
+let currentTranscript = ""
 
-    document.getElementById("upload-status").innerText = "Uploading & processing...";
+function _setStatusPill(state) {
+    // state: 'ready' | 'processing' | 'done'
+    const pill = document.getElementById("upload-status-pill")
+    pill.className = "status-pill " + state
+    const labels = { ready: "READY", processing: "PROCESSING", done: "DONE" }
+    pill.textContent = labels[state] || state.toUpperCase()
+}
 
-    try {
-        const res = await fetch(`${API_BASE}/api/lectures/upload`, {
-            method: "POST",
-            body: formData
-        });
-        const data = await res.json();
-        
-        activeLectureId = data.lecture_id;
-        document.getElementById("upload-status").innerText = `Uploaded ID: ${activeLectureId}`;
-        
-        // Fetch Lecture Details
-        loadLectureDetails(activeLectureId);
-    } catch (err) {
-        document.getElementById("upload-status").innerText = "Upload failed.";
+function _setUploadStatusMsg(msg, isError) {
+    const el = document.getElementById("upload-status")
+    el.textContent = msg
+    el.style.color = isError ? "var(--danger-color)" : "var(--text-muted)"
+}
+
+function _enableAIButtons(enabled) {
+    document.getElementById("btn-summary").disabled = !enabled
+    document.getElementById("btn-flashcards").disabled = !enabled
+    document.getElementById("btn-ask").disabled = !enabled
+}
+
+function handleFileSelect(event) {
+    const file = event.target.files[0]
+    const display = document.getElementById("file-name-display")
+    if (file) {
+        display.textContent = file.name
+        display.style.color = "var(--text-primary)"
+    } else {
+        display.textContent = "No file chosen"
+        display.style.color = ""
     }
 }
 
-async function loadLectureDetails(id) {
-    const res = await fetch(`${API_BASE}/api/lectures/${id}`);
-    const data = await res.json();
-    document.getElementById("recorded-transcript-box").innerText = data.transcript;
+async function uploadLecture() {
+    const fileInput = document.getElementById("media-file")
+    const file = fileInput.files[0]
+    if (!file) {
+        _setUploadStatusMsg("Please select a file first.", true)
+        return
+    }
+
+    // UI: PROCESSING state
+    _setStatusPill("processing")
+    _setUploadStatusMsg("Uploading & processing…")
+    document.getElementById("btn-upload").disabled = true
+
+    // Show loading placeholder in transcript box
+    const transcriptBox = document.getElementById("recorded-transcript-box")
+    transcriptBox.classList.remove("empty")
+    transcriptBox.innerHTML =
+        '<div class="transcript-loading"><span class="spinner">⏳</span> Transcribing audio…</div>'
+
+    try {
+        const formData = new FormData()
+        formData.append("file", file)
+
+        const res = await fetch(`${API_BASE}/transcribe-audio`, {
+            method: "POST",
+            body: formData,
+        })
+
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}))
+            throw new Error(err.detail || `Server error ${res.status}`)
+        }
+
+        const data = await res.json()
+        currentTranscript = data.transcript
+
+        // Display transcript
+        transcriptBox.innerHTML =
+            `<pre class="transcript-text">${escapeHtml(currentTranscript)}</pre>`
+
+        _setStatusPill("done")
+        _setUploadStatusMsg(`Transcription complete — ${currentTranscript.length} characters`)
+        _enableAIButtons(true)
+
+    } catch (err) {
+        _setStatusPill("ready")
+        _setUploadStatusMsg("Upload failed: " + err.message, true)
+        transcriptBox.innerHTML =
+            '<div class="transcript-empty"><div class="transcript-empty-icon">⚠️</div>' +
+            `<p>Upload failed</p><p style="font-size:0.8rem;opacity:0.7">${escapeHtml(err.message)}</p></div>`
+        transcriptBox.classList.add("empty")
+    } finally {
+        document.getElementById("btn-upload").disabled = false
+    }
 }
 
 // --- 🤖 AI FEATURES ---
+
 async function generateSummary() {
-    if (!activeLectureId) return alert("Upload a lecture first!");
-    const res = await fetch(`${API_BASE}/api/lectures/${activeLectureId}/summarize`, { method: "POST" });
-    const data = await res.json();
+    if (!currentTranscript) return
 
-    document.getElementById("summary-text").innerText = data.summary;
-    const list = document.getElementById("key-points-list");
-    list.innerHTML = "";
-    data.key_takeaways.forEach(point => {
-        const li = document.createElement("li");
-        li.innerText = point;
-        list.appendChild(li);
-    });
+    const btn = document.getElementById("btn-summary")
+    const originalHtml = btn.innerHTML
+    btn.disabled = true
+    btn.innerHTML = '<span class="spinner">⏳</span> Generating…'
 
-    document.getElementById("summary-section").classList.remove("hidden");
+    try {
+        const res = await fetch(`${API_BASE}/generate-summary`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ transcript: currentTranscript }),
+        })
+
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}))
+            throw new Error(err.detail || `Server error ${res.status}`)
+        }
+
+        const data = await res.json()
+
+        document.getElementById("summary-text").textContent = data.summary
+        const list = document.getElementById("key-points-list")
+        list.innerHTML = ""
+        data.key_points.forEach(point => {
+            const li = document.createElement("li")
+            li.textContent = point
+            list.appendChild(li)
+        })
+        document.getElementById("summary-section").classList.remove("hidden")
+
+    } catch (err) {
+        _showAiError("summary-section", "summary-text", "Failed to generate summary: " + err.message)
+    } finally {
+        btn.disabled = false
+        btn.innerHTML = originalHtml
+    }
 }
 
 async function generateFlashcards() {
-    if (!activeLectureId) return alert("Upload a lecture first!");
-    const res = await fetch(`${API_BASE}/api/lectures/${activeLectureId}/flashcards`, { method: "POST" });
-    const data = await res.json();
+    if (!currentTranscript) return
 
-    const container = document.getElementById("flashcards-container");
-    container.innerHTML = "";
-    data.flashcards.forEach(card => {
-        const div = document.createElement("div");
-        div.className = "flashcard";
-        div.innerHTML = `<strong>Q: ${card.question}</strong><br><small>A: ${card.answer}</small>`;
-        container.appendChild(div);
-    });
+    const btn = document.getElementById("btn-flashcards")
+    const originalHtml = btn.innerHTML
+    btn.disabled = true
+    btn.innerHTML = '<span class="spinner">⏳</span> Generating…'
 
-    document.getElementById("flashcard-section").classList.remove("hidden");
+    try {
+        const res = await fetch(`${API_BASE}/generate-flashcards`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ transcript: currentTranscript }),
+        })
+
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}))
+            throw new Error(err.detail || `Server error ${res.status}`)
+        }
+
+        const data = await res.json()
+
+        const container = document.getElementById("flashcards-container")
+        container.innerHTML = ""
+        data.flashcards.forEach((card, i) => {
+            const div = document.createElement("div")
+            div.className = "flashcard"
+            div.innerHTML =
+                `<div class="flashcard-q"><span class="flashcard-label">Q${i + 1}</span>${escapeHtml(card.question)}</div>` +
+                `<div class="flashcard-a"><span class="flashcard-label answer">A</span>${escapeHtml(card.answer)}</div>`
+            container.appendChild(div)
+        })
+        document.getElementById("flashcard-section").classList.remove("hidden")
+
+    } catch (err) {
+        _showAiError("flashcard-section", "flashcards-container", "Failed to create flashcards: " + err.message)
+    } finally {
+        btn.disabled = false
+        btn.innerHTML = originalHtml
+    }
 }
 
 async function sendChatMessage() {
-    if (!activeLectureId) return alert("Upload a lecture first!");
-    const input = document.getElementById("chat-input");
-    const question = input.value.trim();
-    if (!question) return;
+    const input = document.getElementById("chat-input")
+    const question = input.value.trim()
+    if (!question || !currentTranscript) return
 
-    const chatHistory = document.getElementById("chat-history");
-    chatHistory.innerHTML += `<p><strong>You:</strong> ${question}</p>`;
-    input.value = "";
+    const chatHistory = document.getElementById("chat-history")
+    const btnAsk = document.getElementById("btn-ask")
 
-    const res = await fetch(`${API_BASE}/api/lectures/${activeLectureId}/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question })
-    });
-    const data = await res.json();
+    // Append user bubble
+    const userBubble = document.createElement("div")
+    userBubble.className = "chat-bubble chat-bubble-user"
+    userBubble.textContent = question
+    chatHistory.appendChild(userBubble)
 
-    chatHistory.innerHTML += `<p><strong>AI:</strong> ${data.answer}</p>`;
-    chatHistory.scrollTop = chatHistory.scrollHeight;
+    input.value = ""
+    btnAsk.disabled = true
+    btnAsk.textContent = "…"
+
+    // Typing indicator
+    const typingBubble = document.createElement("div")
+    typingBubble.className = "chat-bubble chat-bubble-ai chat-typing"
+    typingBubble.textContent = "⏳ Thinking…"
+    chatHistory.appendChild(typingBubble)
+    chatHistory.scrollTop = chatHistory.scrollHeight
+
+    try {
+        const res = await fetch(`${API_BASE}/ask-lecture`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                question,
+                transcript_context: currentTranscript,
+            }),
+        })
+
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}))
+            throw new Error(err.detail || `Server error ${res.status}`)
+        }
+
+        const data = await res.json()
+        typingBubble.className = "chat-bubble chat-bubble-ai"
+        typingBubble.textContent = data.answer
+
+    } catch (err) {
+        typingBubble.className = "chat-bubble chat-bubble-ai chat-bubble-error"
+        typingBubble.textContent = "⚠️ Error: " + err.message
+    } finally {
+        btnAsk.disabled = false
+        btnAsk.textContent = "Ask"
+        chatHistory.scrollTop = chatHistory.scrollHeight
+    }
+}
+
+function handleChatKey(event) {
+    if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault()
+        sendChatMessage()
+    }
+}
+
+function _showAiError(sectionId, contentId, msg) {
+    const section = document.getElementById(sectionId)
+    const content = document.getElementById(contentId)
+    content.innerHTML = `<span style="color:var(--danger-color)">${escapeHtml(msg)}</span>`
+    section.classList.remove("hidden")
 }
 
 // ========== 🎨 WHITEBOARD & DIAGRAM OCR FUNCTIONS ==========
