@@ -5,6 +5,7 @@ import time
 
 import ai_engine
 import database
+from database import flag_topic, get_confusion_summary
 import transcriber
 
 app = FastAPI()
@@ -207,3 +208,20 @@ async def add_manual_entry(request: ManualEntryRequest):
         timestamp="00:00",
     )
     return {"status": "ok", "entry": entry}
+
+
+# ========== FEEDBACK LOOP / TEACHER INSIGHTS ==========
+
+class FlagRequest(BaseModel):
+    topic: str
+
+
+@app.post("/flag-topic")
+def flag_topic_route(payload: FlagRequest):
+    new_count = flag_topic(payload.topic)
+    return {"topic": payload.topic, "count": new_count}
+
+
+@app.get("/confusion-summary")
+def confusion_summary_route():
+    return {"topics": get_confusion_summary()}

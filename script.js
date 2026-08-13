@@ -559,6 +559,139 @@ function updateWhiteboardUI() {
 
 // ========== AI TUTOR & DIAGRAM ADVISOR FUNCTIONS ==========
 
+const TRANSCRIPT_KEYWORDS = [
+    "Wave-Particle Duality",
+    "Interference Pattern",
+    "Double-Slit",
+    "De Brogie Wavelength",
+    "Momentum Equation",
+    "Wave Function Collapse",
+    "Observer Effect",
+];
+
+let teacherInsightsOpen = false;
+const flaggedTopicsLocal = new Set();
+
+function renderKeywordPills() {
+    const container = document.getElementById("keywords-container");
+    const countEl = document.getElementById("keywords-count");
+    if (!container) return;
+
+    if (countEl) countEl.textContent = TRANSCRIPT_KEYWORDS.length;
+
+    container.innerHTML = TRANSCRIPT_KEYWORDS.map((topic) => {
+        const isFlagged = flaggedTopicsLocal.has(topic);
+        return `
+            <span class="keyword-pill${isFlagged ? " flagged" : ""}" data-topic="${escapeHtml(topic)}">
+                <span class="keyword-text">${escapeHtml(topic)}</span>
+                <button
+                    type="button"
+                    class="keyword-flag-btn${isFlagged ? " flagged" : ""}"
+                    title="Flag as confusing"
+                    aria-label="Flag ${escapeHtml(topic)} as confusing"
+                    onclick="flagTopic(this)"
+                >${isFlagged ? "★" : "☆"}</button>
+            </span>
+        `;
+    }).join("");
+}
+
+async function flagTopic(btn) {
+    const pill = btn.closest(".keyword-pill");
+    const topic = pill?.dataset.topic;
+    if (!topic || !btn) return;
+
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(`${API_BASE}/flag-topic`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ topic }),
+        });
+
+        if (!res.ok) throw new Error("Flag request failed");
+
+        flaggedTopicsLocal.add(topic);
+
+        btn.textContent = "★";
+        btn.classList.add("flagged", "just-flagged");
+        btn.closest(".keyword-pill")?.classList.add("flagged");
+
+        setTimeout(() => btn.classList.remove("just-flagged"), 600);
+
+        if (teacherInsightsOpen) {
+            loadConfusionSummary();
+        }
+    } catch (err) {
+        console.error("Failed to flag topic:", err);
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+function toggleTeacherInsights() {
+    const panel = document.getElementById("teacher-insights-panel");
+    const toggleBtn = document.getElementById("btn-teacher-insights");
+    if (!panel || !toggleBtn) return;
+
+    teacherInsightsOpen = !teacherInsightsOpen;
+    panel.classList.toggle("hidden", !teacherInsightsOpen);
+    toggleBtn.classList.toggle("active", teacherInsightsOpen);
+
+    if (teacherInsightsOpen) {
+        loadConfusionSummary();
+    }
+}
+
+async function loadConfusionSummary() {
+    const list = document.getElementById("confusion-summary-list");
+    if (!list) return;
+
+    list.innerHTML = '<p class="confusion-empty">Loading...</p>';
+
+    try {
+        const res = await fetch(`${API_BASE}/confusion-summary`);
+        if (!res.ok) throw new Error("Summary request failed");
+        const data = await res.json();
+        renderConfusionSummary(data.topics || []);
+    } catch (err) {
+        console.error("Failed to load confusion summary:", err);
+        list.innerHTML = '<p class="confusion-empty">Could not load insights. Is the server running?</p>';
+    }
+}
+
+function renderConfusionSummary(topics) {
+    const list = document.getElementById("confusion-summary-list");
+    if (!list) return;
+
+    if (!topics.length) {
+        list.innerHTML = '<p class="confusion-empty">No topics flagged yet. Students can flag keywords above.</p>';
+        return;
+    }
+
+    const maxCount = topics[0].count || 1;
+
+    list.innerHTML = topics.map(({ topic, count }) => {
+        const widthPct = Math.max(8, Math.round((count / maxCount) * 100));
+        return `
+            <div class="confusion-row">
+                <div class="confusion-row-label">
+                    <span class="confusion-topic-pill">${escapeHtml(topic)}</span>
+                </div>
+                <span class="confusion-count-badge">${count}</span>
+                <div class="confusion-bar-track">
+                    <div class="confusion-bar-fill" style="width: ${widthPct}%"></div>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+function initAiTutorFeedback() {
+    renderKeywordPills();
+}
+
 function refreshDiagramSuggestions() {
     // Fetch diagram suggestions from backend
     fetch(`${API_BASE}/diagram-suggestions`, {
@@ -690,5 +823,6 @@ function askAiTutor(diagramId) {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     initLiveCaptureTab();
+    initAiTutorFeedback();
     loadMockDiagramSuggestions();
 });

@@ -352,21 +352,27 @@
               <h2><span class="icon">✨</span>Automated AI Diagram Advisor</h2>
               <span class="diagram-advisor-badge">Transcript-Driven</span>
             </div>
-            <button class="btn btn-primary" onclick="refreshDiagramSuggestions()">🔄 Refresh Suggestions</button>
+            <div class="diagram-advisor-actions">
+              <button id="btn-teacher-insights" class="btn btn-secondary" onclick="toggleTeacherInsights()">📊 Teacher Insights</button>
+              <button class="btn btn-primary" onclick="refreshDiagramSuggestions()">🔄 Refresh Suggestions</button>
+            </div>
+          </div>
+
+          <!-- Teacher Insights Panel -->
+          <div id="teacher-insights-panel" class="teacher-insights-panel hidden">
+            <div class="teacher-insights-header">
+              <h3>📊 Teacher Insights</h3>
+              <p class="teacher-insights-desc">Topics students found confusing, based on flagged keywords</p>
+            </div>
+            <div id="confusion-summary-list" class="confusion-summary-list">
+              <p class="confusion-empty">No topics flagged yet. Students can flag keywords above.</p>
+            </div>
           </div>
 
           <!-- Detected Keywords -->
           <div class="keywords-section">
-            <p style="font-size: 0.95rem; font-weight: 600; margin: 0 0 0.75rem 0;">Detected Transcript Keywords (7):</p>
-            <div class="keywords-row" id="keywords-container">
-              <span class="keyword-pill">Wave-Particle Duality</span>
-              <span class="keyword-pill">Interference Pattern</span>
-              <span class="keyword-pill">Double-Slit</span>
-              <span class="keyword-pill">De Brogie Wavelength</span>
-              <span class="keyword-pill">Momentum Equation</span>
-              <span class="keyword-pill">Wave Function Collapse</span>
-              <span class="keyword-pill">Observer Effect</span>
-            </div>
+            <p style="font-size: 0.95rem; font-weight: 600; margin: 0 0 0.75rem 0;">Detected Transcript Keywords (<span id="keywords-count">7</span>):</p>
+            <div class="keywords-row" id="keywords-container"></div>
           </div>
 
           <!-- Filter Buttons -->

@@ -1240,10 +1240,126 @@ textarea {
     margin-top: 0.25rem;
 }
 
-.keywords-section {
-    margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid var(--card-border);
+.diagram-advisor-actions {
+    display: flex;
+    gap: 0.6rem;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.diagram-advisor-actions .btn {
+    margin-top: 0.25rem;
+}
+
+#btn-teacher-insights.active {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: rgba(99, 102, 241, 0.45);
+    color: var(--primary-color);
+}
+
+.teacher-insights-panel {
+    margin-bottom: 1.5rem;
+    padding: 1.25rem;
+    background: rgba(99, 102, 241, 0.06);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 10px;
+}
+
+.teacher-insights-panel.hidden {
+    display: none;
+}
+
+.teacher-insights-header h3 {
+    margin: 0 0 0.35rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-heading);
+}
+
+.teacher-insights-desc {
+    margin: 0 0 1rem 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+}
+
+.confusion-summary-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.confusion-empty {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.confusion-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    gap: 0.25rem 0.75rem;
+    align-items: center;
+    padding: 0.55rem 0.65rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+}
+
+.confusion-row-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.confusion-topic-pill {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    color: var(--text-primary);
+    padding: 0.3rem 0.65rem;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.confusion-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    padding: 0.15rem 0.45rem;
+    background: rgba(99, 102, 241, 0.2);
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    color: var(--primary-color);
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.confusion-bar-track {
+    grid-column: 1 / -1;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.confusion-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-hover));
+    border-radius: 999px;
+    transition: width 0.35s ease;
+    min-width: 4px;
 }
 
 .keywords-row {
@@ -1253,14 +1369,63 @@ textarea {
 }
 
 .keyword-pill {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
     background: rgba(99, 102, 241, 0.1);
     border: 1px solid rgba(99, 102, 241, 0.25);
     color: var(--text-primary);
-    padding: 0.4rem 0.9rem;
+    padding: 0.35rem 0.45rem 0.35rem 0.75rem;
     border-radius: 16px;
     font-size: 0.8rem;
     font-weight: 500;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.keyword-pill.flagged {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.35);
+}
+
+.keyword-text {
+    line-height: 1.2;
+}
+
+.keyword-flag-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+    line-height: 1;
+}
+
+.keyword-flag-btn:hover {
+    color: #fbbf24;
+    background: rgba(245, 158, 11, 0.12);
+}
+
+.keyword-flag-btn.flagged {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.18);
+}
+
+.keyword-flag-btn.just-flagged {
+    transform: scale(1.15);
+}
+
+.keywords-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--card-border);
 }
 
 .filter-section {
