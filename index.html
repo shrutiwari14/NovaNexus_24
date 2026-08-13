@@ -8,7 +8,10 @@
   </head>
   <body>
     <header class="app-header">
-      <h1>🎓 Smart Classroom AI</h1>
+      <h1>
+        <span>🎓 Smart Classroom AI</span>
+        <span class="app-badge">BOB HACK'26</span>
+      </h1>
       <nav>
         <button
           id="nav-live"
@@ -31,6 +34,13 @@
         >
           🎨 Whiteboard OCR
         </button>
+        <button
+          id="nav-ai-tutor"
+          class="nav-btn"
+          onclick="switchTab('ai-tutor')"
+        >
+          ✨ AI Tutor & Doubts
+        </button>
       </nav>
     </header>
 
@@ -38,7 +48,7 @@
       <!-- TAB 1: LIVE LECTURE -->
       <section id="tab-live" class="tab-content active">
         <div class="card">
-          <h2>Live Lecture Stream</h2>
+          <h2><span class="icon">🔴</span>Live Lecture Stream</h2>
           <div class="controls">
             <button
               id="btn-start"
@@ -69,30 +79,45 @@
       <section id="tab-recorded" class="tab-content">
         <div class="grid-2col">
           <div class="card">
-            <h2>Upload Lecture Media</h2>
+            <h2><span class="icon">📤</span>Upload Lecture Media</h2>
             <input type="file" id="media-file" accept="audio/*,video/*" />
             <button class="btn btn-primary" onclick="uploadLecture()">
               Upload & Process
             </button>
             <div id="upload-status"></div>
+            
+            <div class="upload-meta">
+              <span class="file-support">MP3, WAV, MP4, M4A, OGG</span>
+              <span class="status-pill ready" id="upload-status-pill">Ready</span>
+            </div>
 
             <hr />
 
-            <h2>Lecture Transcript</h2>
-            <div class="transcript-box" id="recorded-transcript-box">
-              <p class="placeholder">Upload a file to view transcript...</p>
+            <h2><span class="icon">📝</span>Lecture Transcript</h2>
+            <div class="transcript-box empty" id="recorded-transcript-box">
+              <div class="transcript-empty">
+                <div class="transcript-empty-icon">📋</div>
+                <p>No transcript yet</p>
+                <p style="font-size: 0.8rem; opacity: 0.7;">Upload a file to generate transcript...</p>
+              </div>
             </div>
           </div>
 
           <div class="card">
-            <h2>AI Suite Features</h2>
+            <h2><span class="icon">✨</span>AI Suite Features</h2>
             <div class="ai-actions">
-              <button class="btn btn-secondary" onclick="generateSummary()">
-                Generate Summary
-              </button>
-              <button class="btn btn-secondary" onclick="generateFlashcards()">
-                Create Flashcards
-              </button>
+              <div class="ai-action-item">
+                <button class="btn btn-secondary" onclick="generateSummary()">
+                  Generate Summary
+                </button>
+                <p class="ai-action-desc">Condense the lecture into key points and insights</p>
+              </div>
+              <div class="ai-action-item">
+                <button class="btn btn-secondary" onclick="generateFlashcards()">
+                  Create Flashcards
+                </button>
+                <p class="ai-action-desc">Auto-generate Q&A study cards for review</p>
+              </div>
             </div>
 
             <!-- Summary Display -->
@@ -110,7 +135,7 @@
 
             <!-- Interactive Q&A Chat -->
             <div class="chat-section">
-              <h3>Ask Lecture AI</h3>
+              <h3>💬 Ask Lecture AI</h3>
               <div id="chat-history" class="chat-box"></div>
               <div class="chat-input-row">
                 <input
@@ -121,6 +146,25 @@
                 <button class="btn btn-primary" onclick="sendChatMessage()">
                   Ask
                 </button>
+              </div>
+            </div>
+
+            <!-- Session Info Panel -->
+            <div class="session-info">
+              <h4>📊 Session Info</h4>
+              <div class="session-info-items">
+                <div class="session-info-item">
+                  <span class="session-info-label">Current Language</span>
+                  <span class="session-info-value">English</span>
+                </div>
+                <div class="session-info-item">
+                  <span class="session-info-label">Session Mode</span>
+                  <span class="session-info-value">Recorded</span>
+                </div>
+                <div class="session-info-item">
+                  <span class="session-info-label">Status</span>
+                  <span class="session-info-value">Ready to Process</span>
+                </div>
               </div>
             </div>
           </div>
@@ -207,6 +251,93 @@
                   </div>
                   <pre id="ocr-extracted-text" class="ocr-text-box"></pre>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: AI TUTOR & DIAGRAM ADVISOR -->
+      <section id="tab-ai-tutor" class="tab-content">
+        <div class="card">
+          <div class="diagram-advisor-header">
+            <div>
+              <h2><span class="icon">✨</span>Automated AI Diagram Advisor</h2>
+              <span class="diagram-advisor-badge">Transcript-Driven</span>
+            </div>
+            <button class="btn btn-primary" onclick="refreshDiagramSuggestions()">🔄 Refresh Suggestions</button>
+          </div>
+
+          <!-- Detected Keywords -->
+          <div class="keywords-section">
+            <p style="font-size: 0.95rem; font-weight: 600; margin: 0 0 0.75rem 0;">Detected Transcript Keywords (7):</p>
+            <div class="keywords-row" id="keywords-container">
+              <span class="keyword-pill">Wave-Particle Duality</span>
+              <span class="keyword-pill">Interference Pattern</span>
+              <span class="keyword-pill">Double-Slit</span>
+              <span class="keyword-pill">De Brogie Wavelength</span>
+              <span class="keyword-pill">Momentum Equation</span>
+              <span class="keyword-pill">Wave Function Collapse</span>
+              <span class="keyword-pill">Observer Effect</span>
+            </div>
+          </div>
+
+          <!-- Filter Buttons -->
+          <div class="filter-section">
+            <p style="font-size: 0.95rem; font-weight: 600; margin: 0 0 0.75rem 0;">Filter Type:</p>
+            <div class="filter-buttons">
+              <button class="filter-btn active" onclick="filterDiagrams('all')">All Diagram Types</button>
+              <button class="filter-btn" onclick="filterDiagrams('chart')">📊 Plots & Graphs</button>
+              <button class="filter-btn" onclick="filterDiagrams('flowchart')">➡️ Flowcharts</button>
+              <button class="filter-btn" onclick="filterDiagrams('concept_map')">🗺️ Concept Maps</button>
+            </div>
+          </div>
+
+          <!-- Diagram Suggestions Grid -->
+          <div class="diagram-cards" id="diagram-cards-container">
+            <!-- Card 1 -->
+            <div class="diagram-card">
+              <div class="diagram-card-icon">📊</div>
+              <h3 class="diagram-card-title">2D Intensity Profile & Wave Superposition Plot</h3>
+              <div class="diagram-card-tags">
+                <span class="diagram-tag">Wave-Particle Duality</span>
+                <span class="diagram-tag">Interference Pattern</span>
+              </div>
+              <p class="diagram-card-description">सटीक गणितीय तरंग वितरण का चित्रण रचनात्मक और विनाशी स्थितियों को स्पष्ट रूप से समझाता है।</p>
+              <div class="diagram-card-buttons">
+                <button class="btn btn-secondary btn-sm" onclick="viewDiagramBlueprint(0)">👁️ View Blueprint</button>
+                <button class="btn btn-primary btn-sm" onclick="askAiTutor(0)">💬 Ask AI Tutor</button>
+              </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="diagram-card">
+              <div class="diagram-card-icon">➡️</div>
+              <h3 class="diagram-card-title">Step-by-Step Quantum State Measurement Flowchart</h3>
+              <div class="diagram-card-tags">
+                <span class="diagram-tag">Interference Pattern</span>
+                <span class="diagram-tag">Double-Slit</span>
+              </div>
+              <p class="diagram-card-description">फ़्लोचार्ट बहु-स्तरीय भौतिक प्रक्रियाओं को क्रमिक रूप से चरणों में विभाजित करते हैं।</p>
+              <div class="diagram-card-buttons">
+                <button class="btn btn-secondary btn-sm" onclick="viewDiagramBlueprint(1)">👁️ View Blueprint</button>
+                <button class="btn btn-primary btn-sm" onclick="askAiTutor(1)">💬 Ask AI Tutor</button>
+              </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="diagram-card">
+              <div class="diagram-card-icon">🗺️</div>
+              <h3 class="diagram-card-title">Conceptual Relationship Mindmap (Classical vs. Quantum)</h3>
+              <div class="diagram-card-tags">
+                <span class="diagram-tag">Wave-Particle Duality</span>
+                <span class="diagram-tag">Interference Pattern</span>
+                <span class="diagram-tag">Double-Slit</span>
+              </div>
+              <p class="diagram-card-description">शास्त्रीय न्यूटोनियन कणों और संभावना आधारित क्वांटम तरंगों के बीच संबंधों का तुलनात्मक नक्शा।</p>
+              <div class="diagram-card-buttons">
+                <button class="btn btn-secondary btn-sm" onclick="viewDiagramBlueprint(2)">👁️ View Blueprint</button>
+                <button class="btn btn-primary btn-sm" onclick="askAiTutor(2)">💬 Ask AI Tutor</button>
               </div>
             </div>
           </div>

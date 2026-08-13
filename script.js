@@ -9,6 +9,10 @@ let activeWhiteboardIndex = null;
 let selectedImageBase64 = null;
 let selectedImageTitle = "Whiteboard Diagram Snapshot";
 
+// ========== AI TUTOR & DIAGRAM ADVISOR STATE ==========
+let diagramSuggestions = [];
+let currentFilterCategory = "all";
+
 function switchTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
@@ -361,3 +365,138 @@ function updateWhiteboardUI() {
         }
     }
 }
+
+// ========== AI TUTOR & DIAGRAM ADVISOR FUNCTIONS ==========
+
+function refreshDiagramSuggestions() {
+    // Fetch diagram suggestions from backend
+    fetch(`${API_BASE}/diagram-suggestions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            lectureContext: "Physics 201: Wave-Particle Duality & Double-Slit Experiment",
+            transcriptText: "Good morning everyone. Today we delve into wave-particle duality and Young's famous double-slit experiment. When we fire single photons through two narrow slits, we don't get two solid bands on the detector screen. Instead, we observe an interference pattern.",
+            targetLanguage: "English"
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        diagramSuggestions = data.suggestions || [];
+        renderDiagramCards(diagramSuggestions);
+    })
+    .catch(err => {
+        console.error('Failed to fetch diagram suggestions:', err);
+        // Use fallback mock data
+        loadMockDiagramSuggestions();
+    });
+}
+
+function loadMockDiagramSuggestions() {
+    // Mock data for development/offline mode
+    diagramSuggestions = [
+        {
+            id: 'diag-1',
+            type: '2D Intensity Profile & Wave Superposition Plot',
+            category: 'chart',
+            icon: '📊',
+            tags: ['Wave-Particle Duality', 'Interference Pattern'],
+            description: 'सटीक गणितीय तरंग वितरण का चित्रण रचनात्मक और विनाशी स्थितियों को स्पष्ट रूप से समझाता है।',
+            suggestedQuestion: 'Can you explain the 2D Wave Intensity Profile step-by-step?'
+        },
+        {
+            id: 'diag-2',
+            type: 'Step-by-Step Quantum State Measurement Flowchart',
+            category: 'flowchart',
+            icon: '➡️',
+            tags: ['Interference Pattern', 'Double-Slit'],
+            description: 'फ़्लोचार्ट बहु-स्तरीय भौतिक प्रक्रियाओं को क्रमिक रूप से चरणों में विभाजित करते हैं।',
+            suggestedQuestion: 'How does wave function collapse step-by-step?'
+        },
+        {
+            id: 'diag-3',
+            type: 'Conceptual Relationship Mindmap (Classical vs. Quantum)',
+            category: 'concept_map',
+            icon: '🗺️',
+            tags: ['Wave-Particle Duality', 'Interference Pattern', 'Double-Slit'],
+            description: 'शास्त्रीय न्यूटोनियन कणों और संभावना आधारित क्वांटम तरंगों के बीच संबंधों का तुलनात्मक नक्शा।',
+            suggestedQuestion: 'What are the key differences between Classical and Quantum mechanics?'
+        }
+    ];
+    renderDiagramCards(diagramSuggestions);
+}
+
+function renderDiagramCards(cards) {
+    const container = document.getElementById('diagram-cards-container');
+    
+    // Filter by current category
+    let filtered = cards;
+    if (currentFilterCategory !== 'all') {
+        filtered = cards.filter(card => card.category === currentFilterCategory);
+    }
+    
+    container.innerHTML = '';
+    
+    filtered.forEach((card, index) => {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'diagram-card';
+        
+        const tagsHtml = card.tags.map(tag => 
+            `<span class="diagram-tag">${tag}</span>`
+        ).join('');
+        
+        cardEl.innerHTML = `
+            <div class="diagram-card-icon">${card.icon || '📋'}</div>
+            <h3 class="diagram-card-title">${card.type}</h3>
+            <div class="diagram-card-tags">${tagsHtml}</div>
+            <p class="diagram-card-description">${card.description}</p>
+            <div class="diagram-card-buttons">
+                <button class="btn btn-secondary btn-sm" onclick="viewDiagramBlueprint('${card.id}')">👁️ View Blueprint</button>
+                <button class="btn btn-primary btn-sm" onclick="askAiTutor('${card.id}')">💬 Ask AI Tutor</button>
+            </div>
+        `;
+        
+        container.appendChild(cardEl);
+    });
+}
+
+function filterDiagrams(category) {
+    currentFilterCategory = category;
+    
+    // Update active button state
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // Re-render cards with filter
+    renderDiagramCards(diagramSuggestions);
+}
+
+function viewDiagramBlueprint(diagramId) {
+    const diagram = diagramSuggestions.find(d => d.id === diagramId);
+    if (diagram) {
+        alert(`📐 Blueprint: ${diagram.type}\n\nThis feature will open an interactive diagram editor in a future version.\n\nSuggested: ${diagram.suggestedQuestion}`);
+    }
+}
+
+function askAiTutor(diagramId) {
+    const diagram = diagramSuggestions.find(d => d.id === diagramId);
+    if (diagram) {
+        // Switch to chat tab (or show a modal with pre-filled question)
+        const question = diagram.suggestedQuestion;
+        
+        // Pre-fill chat and ask the tutor
+        const chatInput = document.getElementById('chat-input');
+        if (chatInput) {
+            chatInput.value = question;
+            sendChatMessage();
+            // Switch to the recorded tab where chat is located
+            switchTab('recorded');
+        } else {
+            alert(`Question: ${question}\n\nChat integration coming soon!`);
+        }
+    }
+}
+
+// Initialize with mock data on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadMockDiagramSuggestions();
+});
