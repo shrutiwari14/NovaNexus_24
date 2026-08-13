@@ -8,38 +8,65 @@
   </head>
   <body>
     <header class="app-header">
-      <h1>
-        <span>🎓 Smart Classroom AI</span>
-        <span class="app-badge">BOB HACK'26</span>
-      </h1>
-      <nav>
+      <div class="header-top">
+        <div class="header-brand">
+          <h1>
+            <span>🎓 Smart Classroom AI</span>
+            <span class="app-badge">BOB HACK'26</span>
+          </h1>
+          <p class="app-subtitle">Multilingual Real-Time Classroom Assistant</p>
+        </div>
+        <div class="header-controls">
+          <button class="header-select lecture-select" type="button" aria-label="Select lecture">
+            <span class="header-select-text">Physics 201: Wave-Particle Du...</span>
+            <span class="header-select-chevron">▾</span>
+          </button>
+          <button class="header-select language-select" type="button" aria-label="Select student language">
+            <span class="header-select-label">Student Language:</span>
+            <span class="header-lang-badge">IN</span>
+            <span class="header-select-text">Hindi (हिन्दी)</span>
+            <span class="header-select-chevron">▾</span>
+          </button>
+          <button class="header-export-btn" type="button" aria-label="Export notes">
+            <span class="header-export-icon">⬇</span>
+            Export Notes
+          </button>
+        </div>
+      </div>
+      <nav class="header-nav">
         <button
           id="nav-live"
           class="nav-btn active"
           onclick="switchTab('live')"
         >
-          🔴 Live Recording
-        </button>
-        <button
-          id="nav-recorded"
-          class="nav-btn"
-          onclick="switchTab('recorded')"
-        >
-          📁 Upload & Analyze
+          <span class="nav-icon">🎤</span>
+          <span class="nav-label">1. Live Capture &amp; Speech</span>
+          <span class="nav-live-dot" aria-hidden="true"></span>
         </button>
         <button
           id="nav-whiteboard"
           class="nav-btn"
           onclick="switchTab('whiteboard')"
         >
-          🎨 Whiteboard OCR
+          <span class="nav-icon">🖼️</span>
+          <span class="nav-label">2. Whiteboard &amp; Diagram OCR</span>
+        </button>
+        <button
+          id="nav-recorded"
+          class="nav-btn"
+          onclick="switchTab('recorded')"
+        >
+          <span class="nav-icon">📖</span>
+          <span class="nav-label">3. Multilingual Study Deck</span>
+          <span class="nav-sparkle">✨</span>
         </button>
         <button
           id="nav-ai-tutor"
           class="nav-btn"
           onclick="switchTab('ai-tutor')"
         >
-          ✨ AI Tutor & Doubts
+          <span class="nav-icon">💬</span>
+          <span class="nav-label">4. AI Tutor &amp; Doubts</span>
         </button>
       </nav>
     </header>
